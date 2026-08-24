@@ -1,3 +1,358 @@
-git add .
-git commit -m "Actualizare index.html cu contor vizite local"
-git push origin main
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HomeMatch Miami - Trusted Emergency Home Services & Luxury Contractors</title>
+    <meta name="description" content="Connect instantly with licensed plumbers, emergency AC repair, and smart home specialists across Brickell, Coral Gables, Miami Beach, and Key Biscayne.">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+    <!-- Header / Navigație -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="text-2xl font-black text-blue-900 tracking-tight">
+                HomeMatch<span class="text-blue-600">Miami</span>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-sm font-medium text-slate-600">
+                <a href="#services" class="hover:text-blue-600 transition">Services</a>
+                <a href="#leads-section" class="hover:text-blue-600 transition">Live Requests</a>
+                <a href="#coverage" class="hover:text-blue-600 transition">Neighborhoods</a>
+                <a href="#pro" class="hover:text-blue-600 transition">Contractor Portal</a>
+            </nav>
+            <div>
+                <a href="#pro" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md transition">
+                    Pro Sub / Join
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="max-w-5xl mx-auto px-4 py-16 text-center">
+        <h1 class="text-3xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">
+            Miami’s Trusted Emergency Home Services & Luxury Contractor Network
+        </h1>
+        <p class="text-base md:text-xl text-slate-600 max-w-3xl mx-auto mb-10">
+            Connect instantly with vetted elite professionals across Brickell, Coral Gables, Miami Beach, Key Biscayne, and Coconut Grove.
+        </p>
+
+        <!-- Badge-uri de încredere -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-12 text-left">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <span class="text-green-600 font-bold text-xl">✓</span>
+                <span class="text-sm font-medium text-slate-700">100% Vetted & Licensed Pros in Florida</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <span class="text-green-600 font-bold text-xl">✓</span>
+                <span class="text-sm font-medium text-slate-700">Instant Booking & 24/7 Emergency Help</span>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                <span class="text-green-600 font-bold text-xl">✓</span>
+                <span class="text-sm font-medium text-slate-700">Transparent Pricing & No Hidden Fees</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categorii Complete de Servicii -->
+    <section id="services" class="max-w-7xl mx-auto px-4 pb-16">
+        <h2 class="text-center text-sm font-bold uppercase tracking-widest text-slate-400 mb-10">Select a Category</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Card 1 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="bg-blue-50 p-3 rounded-xl text-blue-600 font-bold text-xl">🔧</div>
+                    <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Active Pros</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Plumbing & Leaks</h3>
+                <p class="text-slate-600 text-sm mb-4">Emergency leaks, drain cleaning, pipe repairs & water heaters.</p>
+                <a href="#leads-section" class="text-blue-600 font-semibold text-sm hover:underline">Find Plumbers &rarr;</a>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="bg-blue-50 p-3 rounded-xl text-blue-600 font-bold text-xl">❄️</div>
+                    <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Active Pros</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">AC / HVAC Miami</h3>
+                <p class="text-slate-600 text-sm mb-4">Climate control, emergency cooling repairs & regular maintenance.</p>
+                <a href="#leads-section" class="text-blue-600 font-semibold text-sm hover:underline">Find HVAC Techs &rarr;</a>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="bg-blue-50 p-3 rounded-xl text-blue-600 font-bold text-xl">⚡</div>
+                    <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Active Pros</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">EV & Smart Home</h3>
+                <p class="text-slate-600 text-sm mb-4">Tesla chargers, electrical safety & smart automation systems.</p>
+                <a href="#leads-section" class="text-blue-600 font-semibold text-sm hover:underline">Find Electricians &rarr;</a>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="bg-blue-50 p-3 rounded-xl text-blue-600 font-bold text-xl">🏠</div>
+                    <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Active Pros</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Luxury Remodeling</h3>
+                <p class="text-slate-600 text-sm mb-4">Kitchen, bathroom and high-end condo interior renovations.</p>
+                <a href="#leads-section" class="text-blue-600 font-semibold text-sm hover:underline">Find Contractors &rarr;</a>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="bg-blue-50 p-3 rounded-xl text-blue-600 font-bold text-xl">🛡️</div>
+                    <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Active Pros</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Roofing & Impact Windows</h3>
+                <p class="text-slate-600 text-sm mb-4">Hurricane protection, roof leaks & certified glass installation.</p>
+                <a href="#leads-section" class="text-blue-600 font-semibold text-sm hover:underline">Find Specialists &rarr;</a>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="bg-blue-50 p-3 rounded-xl text-blue-600 font-bold text-xl">🌿</div>
+                    <span class="text-xs font-semibold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full">Active Pros</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Pools & Landscaping</h3>
+                <p class="text-slate-600 text-sm mb-4">Pool maintenance, pump repairs & tropical outdoor design.</p>
+                <a href="#leads-section" class="text-blue-600 font-semibold text-sm hover:underline">Find Pros &rarr;</a>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Secțiune Interactivă pentru Lead-uri & Deblocare Stripe -->
+    <section id="leads-section" class="max-w-7xl mx-auto px-4 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Formular Adăugare Cerere (Client) -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Need an Emergency Service?</h3>
+                <p class="text-slate-600 text-sm mb-6">Post your request instantly and get connected with verified Miami contractors.</p>
+                <form id="lead-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Service Required</label>
+                        <select id="service" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500">
+                            <option value="Plumbing & Leaks">Plumbing & Leaks</option>
+                            <option value="AC / HVAC Miami">AC / HVAC Miami</option>
+                            <option value="EV & Smart Home">EV & Smart Home</option>
+                            <option value="Luxury Remodeling">Luxury Remodeling</option>
+                            <option value="Roofing & Impact Windows">Roofing & Impact Windows</option>
+                            <option value="Pools & Landscaping">Pools & Landscaping</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Phone Number or Email (Optional)</label>
+                        <input type="text" id="contactInfo" placeholder="e.g., (305) 555-0199 or name@email.com" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Describe Your Problem</label>
+                        <textarea id="description" rows="3" placeholder="Briefly describe what needs to be fixed..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Miami Neighborhood / Address</label>
+                        <input type="text" id="address" required placeholder="e.g., Brickell Ave, Miami" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">ZIP Code</label>
+                        <input type="text" id="zip" required placeholder="33131" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm">
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition shadow-md">
+                        Submit Emergency Request
+                    </button>
+                </form>
+            </div>
+
+            <!-- Listă Lead-uri Active (Pentru Contractori cu Stripe Checkout) -->
+            <div class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                <h3 class="text-2xl font-bold text-slate-900 mb-4">Live Service Requests ($15 Unlock)</h3>
+                <p class="text-slate-600 text-sm mb-6">Contractors: Unlock client contact info securely via Stripe.</p>
+                <div id="leads-container" class="space-y-4 overflow-y-auto max-h-[450px] flex-grow">
+                    <!-- Dinamic încărcat prin JavaScript -->
+                    <p class="text-slate-400 text-sm italic">Loading live requests...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Secțiune Cartier / Coverage -->
+    <section id="coverage" class="bg-slate-100 py-16 border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-4">Prime Neighborhood Coverage in Miami</h2>
+            <p class="text-slate-600 max-w-2xl mx-auto mb-8">Our contractors arrive fully equipped within minutes across all major luxury communities.</p>
+            <div class="flex flex-wrap justify-center gap-3">
+                <span class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-xs">Brickell</span>
+                <span class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-xs">Coral Gables</span>
+                <span class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-xs">Miami Beach</span>
+                <span class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-xs">Key Biscayne</span>
+                <span class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-xs">Coconut Grove</span>
+                <span class="bg-white px-4 py-2 rounded-full border border-slate-200 text-sm font-medium text-slate-700 shadow-xs">Sunny Isles</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contractor Portal / Pro Section -->
+    <section id="pro" class="max-w-4xl mx-auto px-4 py-16">
+        <div class="bg-blue-900 text-white p-8 md:p-12 rounded-3xl shadow-lg text-center">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4">Are you a licensed contractor in Miami?</h2>
+            <p class="text-blue-200 mb-6 max-w-xl mx-auto">Join our elite network to receive verified emergency service requests directly from local homeowners.</p>
+            <a href="mailto:support@homematchmiami.com" class="inline-block bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold px-8 py-3 rounded-xl transition shadow-md">
+                Apply for Pro Membership
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
+            <p class="mb-2">&copy; 2026 HomeMatch Miami. Serving Brickell, Coral Gables, Miami Beach & Key Biscayne.</p>
+            <p>All rights reserved. Built for Miami Homeowners.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript pentru conectarea cu Backend-ul și Stripe -->
+    <script>
+        const API_URL = ''; 
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const leadId = urlParams.get('leadId');
+
+            if (success === 'true' && leadId) {
+                try {
+                    await fetch(`${API_URL}/api/leads/${leadId}/unlock`, { method: 'POST' });
+                    alert('Payment successful! This request is now claimed and will auto-delete in 10 minutes.');
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (err) {
+                    console.error('Unlock error:', err);
+                }
+            }
+            loadLeads();
+        });
+
+        // Trimitere cerere nouă (Client)
+        document.getElementById('lead-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const service = document.getElementById('service').value;
+            const contactInfo = document.getElementById('contactInfo').value;
+            const description = document.getElementById('description').value;
+            const address = document.getElementById('address').value;
+            const zip = document.getElementById('zip').value;
+
+            try {
+                const res = await fetch(`${API_URL}/api/leads`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service, contactInfo, description, address, zip })
+                });
+                if (res.ok) {
+                    alert('Emergency request submitted successfully!');
+                    document.getElementById('lead-form').reset();
+                    loadLeads();
+                }
+            } catch (err) {
+                alert('Error submitting request.');
+            }
+        });
+
+        // Ștergere manuală cerere (dacă clientul s-a răzgândit)
+        async function deleteLead(leadId) {
+            if (confirm('Are you sure you want to delete this request?')) {
+                try {
+                    const res = await fetch(`${API_URL}/api/leads/${leadId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        loadLeads();
+                    } else {
+                        alert('Could not delete request.');
+                    }
+                } catch (err) {
+                    alert('Connection error.');
+                }
+            }
+        }
+
+        // Încărcare lead-uri în pagină
+        async function loadLeads() {
+            const container = document.getElementById('leads-container');
+            try {
+                const res = await fetch(`${API_URL}/api/leads`);
+                const leads = await res.json();
+
+                if (leads.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 text-sm italic">No active service requests right now.</p>';
+                    return;
+                }
+
+                container.innerHTML = leads.map(lead => `
+                    <div class="p-4 rounded-xl border ${lead.unlocked ? 'border-green-300 bg-green-50/40' : 'border-slate-200 bg-slate-50'} flex flex-col justify-between shadow-xs">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-slate-900">${lead.service}</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded">ZIP: ${lead.zip}</span>
+                                    <button onclick="deleteLead('${lead._id}')" class="text-red-500 hover:text-red-700 font-bold text-xs px-2 py-0.5 rounded border border-red-200 bg-white shadow-xs transition" title="Delete request">✕</button>
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-700 mb-1"><strong>Issue:</strong> ${lead.description || 'Emergency repair needed'}</p>
+                            <p class="text-sm text-slate-600 mb-2"><strong>Location:</strong> ${lead.address}</p>
+                            <p class="text-sm text-slate-600 mb-3"><strong>Contact:</strong> ${lead.unlocked ? (lead.contactInfo || 'Provided after unlock') : '****** (Hidden for Privacy)'}</p>
+                        </div>
+                        <div>
+                            ${lead.unlocked 
+                                ? '<div class="flex justify-between items-center"><span class="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg">Claimed by Pro ✓</span> <span class="text-[11px] text-slate-500 italic">Auto-deletes soon</span></div>' 
+                                : `<button onclick="checkoutLead('${lead._id}')" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold text-xs py-2 rounded-lg transition shadow-xs">Unlock Contact Info ($15)</button>`
+                            }
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                container.innerHTML = '<p class="text-red-500 text-sm">Could not load requests.</p>';
+            }
+        }
+
+        // Inițiere sesiune Stripe Checkout
+        async function checkoutLead(leadId) {
+            try {
+                const res = await fetch(`${API_URL}/api/create-checkout-session`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ leadId })
+                });
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Error initiating Stripe payment.');
+                }
+            } catch (err) {
+                alert('Connection error with payment server.');
+            }
+        }
+    </script>
+
+    <!-- Contor vizite vizibil în colțul din dreapta jos -->
+    <div id="secret-counter" style="position: fixed; bottom: 10px; right: 10px; font-size: 12px; font-weight: bold; color: #ffffff; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 6px; z-index: 9999; font-family: sans-serif;">
+        Visits: <span id="visit-number">-</span>
+    </div>
+
+    <script>
+        fetch('/api/secret-stats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('visit-number').innerText = data.totalVisits;
+            })
+            .catch(err => console.log(err));
+    </script>
+</body>
+</html>
