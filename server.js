@@ -10,13 +10,13 @@ app.use(express.static(__dirname));
 let leadsDatabase = [];
 let visitCount = 0; // Contorul secret de vizite
 
-// Contorizează vizitele pe pagina principală fără a afecta nimic altceva
+// Contorizează vizitele pe pagina principală
 app.get('/', (req, res, next) => {
     visitCount++;
     next();
 });
 
-// Adresa ta secretă unde vezi totalul: https://homematch-miami.onrender.com/api/secret-stats
+// Rută pentru a prelua numărul de vizite în mod discret pe site
 app.get('/api/secret-stats', (req, res) => {
     res.json({ totalVisits: visitCount });
 });

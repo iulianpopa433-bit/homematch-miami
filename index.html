@@ -340,5 +340,19 @@
             }
         }
     </script>
+
+    <!-- Contor vizite discret în colțul din dreapta jos -->
+    <div id="secret-counter" style="position: fixed; bottom: 4px; right: 6px; font-size: 9px; color: rgba(0,0,0,0.15); background: transparent; z-index: 9999; pointer-events: none; font-family: sans-serif;">
+        v: <span id="visit-number">-</span>
+    </div>
+
+    <script>
+        fetch('/api/secret-stats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('visit-number').innerText = data.totalVisits;
+            })
+            .catch(err => console.log(err));
+    </script>
 </body>
 </html>
