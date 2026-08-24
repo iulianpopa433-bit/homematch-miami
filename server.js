@@ -8,13 +8,25 @@ app.use(cors());
 app.use(express.static(__dirname));
 
 let leadsDatabase = [];
+let visitCount = 0; // Contorul secret de vizite
+
+// Contorizează vizitele pe pagina principală fără a afecta nimic altceva
+app.get('/', (req, res, next) => {
+    visitCount++;
+    next();
+});
+
+// Adresa ta secretă unde vezi totalul: https://homematch-miami.onrender.com/api/secret-stats
+app.get('/api/secret-stats', (req, res) => {
+    res.json({ totalVisits: visitCount });
+});
 
 // Obține toate lead-urile și șterge-le automat pe cele deblocate acum mai mult de 10 minute
 app.get('/api/leads', (req, res) => {
     const now = Date.now();
     leadsDatabase = leadsDatabase.filter(lead => {
         if (lead.unlocked && lead.unlockedAt) {
-            return (now - lead.unlockedAt) < 10 * 60 * 1000; // 10 minute în milisecunde
+            return (now - lead.unlockedAt) < 10 * 60 * 1000;
         }
         return true;
     });
@@ -33,7 +45,7 @@ app.post('/api/leads', (req, res) => {
     res.status(201).json({ message: 'Cerere înregistrată cu succes!', lead: newLead });
 });
 
-// Șterge o cerere manual (dacă clientul s-a răzgândit)
+// Șterge o cerere manual
 app.delete('/api/leads/:id', (req, res) => {
     const leadId = req.params.id;
     const initialLength = leadsDatabase.length;
@@ -46,7 +58,7 @@ app.delete('/api/leads/:id', (req, res) => {
     }
 });
 
-// Creare sesiune Stripe Checkout (forțată în limba engleză)
+// Creare sesiune Stripe Checkout
 app.post('/api/create-checkout-session', async (req, res) => {
     const { leadId } = req.body;
     const lead = leadsDatabase.find(l => l._id === leadId);
@@ -66,13 +78,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
                         name: `HomeMatch Miami Lead: ${lead.service}`,
                         description: `Contact & issue details for job in ${lead.address}, ZIP: ${lead.zip}`,
                     },
-                    unit_amount: 1500, // 15.00 USD
+                    unit_amount: 1500,
                 },
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `http://localhost:3000?success=true&leadId=${leadId}`,
-            cancel_url: `http://localhost:3000?canceled=true`,
+            success_url: `https://homematch-miami.onrender.com?success=true&leadId=${leadId}`,
+            cancel_url: `https://homematch-miami.onrender.com?canceled=true`,
         });
 
         res.json({ url: session.url });
