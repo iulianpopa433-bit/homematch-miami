@@ -232,7 +232,7 @@
             if (success === 'true' && leadId) {
                 try {
                     await fetch(`${API_URL}/api/leads/${leadId}/unlock`, { method: 'POST' });
-                    alert('Payment successful! Lead unlocked.');
+                    alert('Payment successful! This request is now claimed and will auto-delete in 10 minutes.');
                     window.history.replaceState({}, document.title, window.location.pathname);
                 } catch (err) {
                     console.error('Unlock error:', err);
@@ -266,6 +266,22 @@
             }
         });
 
+        // Ștergere manuală cerere (dacă clientul s-a răzgândit)
+        async function deleteLead(leadId) {
+            if (confirm('Are you sure you want to delete this request?')) {
+                try {
+                    const res = await fetch(`${API_URL}/api/leads/${leadId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        loadLeads();
+                    } else {
+                        alert('Could not delete request.');
+                    }
+                } catch (err) {
+                    alert('Connection error.');
+                }
+            }
+        }
+
         // Încărcare lead-uri în pagină
         async function loadLeads() {
             const container = document.getElementById('leads-container');
@@ -279,19 +295,22 @@
                 }
 
                 container.innerHTML = leads.map(lead => `
-                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+                    <div class="p-4 rounded-xl border ${lead.unlocked ? 'border-green-300 bg-green-50/40' : 'border-slate-200 bg-slate-50'} flex flex-col justify-between shadow-xs">
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <span class="font-bold text-slate-900">${lead.service}</span>
-                                <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded">ZIP: ${lead.zip}</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded">ZIP: ${lead.zip}</span>
+                                    <button onclick="deleteLead('${lead._id}')" class="text-red-500 hover:text-red-700 font-bold text-xs px-2 py-0.5 rounded border border-red-200 bg-white shadow-xs transition" title="Delete request">✕</button>
+                                </div>
                             </div>
                             <p class="text-sm text-slate-700 mb-1"><strong>Issue:</strong> ${lead.description || 'Emergency repair needed'}</p>
                             <p class="text-sm text-slate-600 mb-2"><strong>Location:</strong> ${lead.address}</p>
-                            <p class="text-sm text-slate-600 mb-3"><strong>Contact:</strong> ${lead.unlocked ? (lead.contactInfo || 'Not provided') : '****** (Hidden for Privacy)'}</p>
+                            <p class="text-sm text-slate-600 mb-3"><strong>Contact:</strong> ${lead.unlocked ? (lead.contactInfo || 'Provided after unlock') : '****** (Hidden for Privacy)'}</p>
                         </div>
                         <div>
                             ${lead.unlocked 
-                                ? '<span class="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg">Unlocked ✓ Ready to Call</span>' 
+                                ? '<div class="flex justify-between items-center"><span class="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg">Claimed by Pro ✓</span> <span class="text-[11px] text-slate-500 italic">Auto-deletes soon</span></div>' 
                                 : `<button onclick="checkoutLead('${lead._id}')" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold text-xs py-2 rounded-lg transition shadow-xs">Unlock Contact Info ($15)</button>`
                             }
                         </div>

@@ -9,19 +9,19 @@ app.use(express.static(__dirname));
 
 let leadsDatabase = [];
 
-// Rute API pentru Lead-uri
+// Obține toate lead-urile și șterge-le automat pe cele deblocate acum mai mult de 10 minute
 app.get('/api/leads', (req, res) => {
-    // Curățăm automat lead-urile deblocate acum mai mult de 10 minute (10 * 60 * 1000 ms)
     const now = Date.now();
     leadsDatabase = leadsDatabase.filter(lead => {
         if (lead.unlocked && lead.unlockedAt) {
-            return (now - lead.unlockedAt) < 10 * 60 * 1000;
+            return (now - lead.unlockedAt) < 10 * 60 * 1000; // 10 minute în milisecunde
         }
         return true;
     });
     res.json(leadsDatabase);
 });
 
+// Adaugă o cerere nouă
 app.post('/api/leads', (req, res) => {
     const newLead = {
         _id: Date.now().toString(),
@@ -33,7 +33,7 @@ app.post('/api/leads', (req, res) => {
     res.status(201).json({ message: 'Cerere înregistrată cu succes!', lead: newLead });
 });
 
-// Rută de ștergere manuală a unei cereri
+// Șterge o cerere manual (dacă clientul s-a răzgândit)
 app.delete('/api/leads/:id', (req, res) => {
     const leadId = req.params.id;
     const initialLength = leadsDatabase.length;
@@ -46,7 +46,7 @@ app.delete('/api/leads/:id', (req, res) => {
     }
 });
 
-// Rută Stripe Checkout oficială (LIVE - forțată în limba engleză)
+// Creare sesiune Stripe Checkout (forțată în limba engleză)
 app.post('/api/create-checkout-session', async (req, res) => {
     const { leadId } = req.body;
     const lead = leadsDatabase.find(l => l._id === leadId);
@@ -81,7 +81,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
-// Deblocare lead după plată cu succes și marcare timestamp
+// Deblocare lead după plată cu succes
 app.post('/api/leads/:id/unlock', (req, res) => {
     const leadId = req.params.id;
     let found = null;
@@ -103,5 +103,5 @@ app.post('/api/leads/:id/unlock', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Serverul rulează în mod LIVE pe http://localhost:${PORT}`);
+    console.log(`Serverul rulează pe http://localhost:${PORT}`);
 });
