@@ -24,7 +24,7 @@ app.post('/api/leads', (req, res) => {
     res.status(201).json({ message: 'Cerere înregistrată cu succes!', lead: newLead });
 });
 
-// Rută Stripe Checkout oficială (LIVE)
+// Rută Stripe Checkout oficială (LIVE - forțată în limba engleză)
 app.post('/api/create-checkout-session', async (req, res) => {
     const { leadId } = req.body;
     const lead = leadsDatabase.find(l => l._id === leadId);
@@ -36,12 +36,13 @@ app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
+            locale: 'en', // Forțează interfața Stripe în limba engleză pentru toți utilizatorii
             line_items: [{
                 price_data: {
                     currency: 'usd',
                     product_data: {
                         name: `HomeMatch Miami Lead: ${lead.service}`,
-                        description: `Contact details for job in ${lead.address}, ZIP: ${lead.zip}`,
+                        description: `Contact & issue details for job in ${lead.address}, ZIP: ${lead.zip}`,
                     },
                     unit_amount: 1500, // 15.00 USD
                 },
