@@ -11,6 +11,14 @@ let leadsDatabase = [];
 
 // Rute API pentru Lead-uri
 app.get('/api/leads', (req, res) => {
+    // Curățăm automat lead-urile deblocate acum mai mult de 10 minute (10 * 60 * 1000 ms)
+    const now = Date.now();
+    leadsDatabase = leadsDatabase.filter(lead => {
+        if (lead.unlocked && lead.unlockedAt) {
+            return (now - lead.unlockedAt) < 10 * 60 * 1000;
+        }
+        return true;
+    });
     res.json(leadsDatabase);
 });
 
@@ -18,10 +26,24 @@ app.post('/api/leads', (req, res) => {
     const newLead = {
         _id: Date.now().toString(),
         ...req.body,
-        unlocked: false
+        unlocked: false,
+        unlockedAt: null
     };
     leadsDatabase.unshift(newLead);
     res.status(201).json({ message: 'Cerere înregistrată cu succes!', lead: newLead });
+});
+
+// Rută de ștergere manuală a unei cereri
+app.delete('/api/leads/:id', (req, res) => {
+    const leadId = req.params.id;
+    const initialLength = leadsDatabase.length;
+    leadsDatabase = leadsDatabase.filter(l => l._id !== leadId);
+    
+    if (leadsDatabase.length < initialLength) {
+        res.json({ message: 'Cererea a fost ștersă cu succes!' });
+    } else {
+        res.status(404).json({ error: 'Cererea nu a fost găsită.' });
+    }
 });
 
 // Rută Stripe Checkout oficială (LIVE - forțată în limba engleză)
@@ -36,7 +58,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            locale: 'en', // Forțează interfața Stripe în limba engleză pentru toți utilizatorii
+            locale: 'en',
             line_items: [{
                 price_data: {
                     currency: 'usd',
@@ -59,13 +81,14 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
-// Deblocare lead după plată cu succes
+// Deblocare lead după plată cu succes și marcare timestamp
 app.post('/api/leads/:id/unlock', (req, res) => {
     const leadId = req.params.id;
     let found = null;
     leadsDatabase = leadsDatabase.map(lead => {
         if (lead._id === leadId) {
             lead.unlocked = true;
+            lead.unlockedAt = Date.now();
             found = lead;
         }
         return lead;
