@@ -8,6 +8,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+app.use(express.static(__dirname));
+
 // Conectare la MongoDB Atlas (preia din variabila de mediu de pe Render sau folosește fallback-ul)
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://iulianpopa433_db_user:asP2WUlGA60i95AU@cluster0.sfkeudx.mongodb.net/homematch-miami?retryWrites=true&w=majority&appName=Cluster0';
 
