@@ -10,7 +10,7 @@ app.use(cors());
 
 app.use(express.static(__dirname));
 
-// Conectare la MongoDB Atlas (preia din variabila de mediu de pe Render sau folosește fallback-ul)
+// Conectare la MongoDB Atlas
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://iulianpopa433_db_user:asP2WUlGA60i95AU@cluster0.sfkeudx.mongodb.net/homematch-miami?retryWrites=true&w=majority&appName=Cluster0';
 
 mongoose.connect(MONGO_URI)
@@ -56,6 +56,10 @@ const leadSchema = new mongoose.Schema({
 });
 
 const Lead = mongoose.model('Lead', leadSchema);
+
+// Schema pentru Contor Vizite
+const statsSchema = new mongoose.Schema({ pageViews: { type: Number, default: 1240 } });
+const Stats = mongoose.model('Stats', statsSchema);
 
 // Funcție pentru calcularea datei de expirare
 function calculateExpirationDate(planType) {
@@ -130,7 +134,6 @@ app.get('/api/contractors', async (req, res) => {
     }
 });
 
-// Endpoint Stripe pentru generarea sesiunii de plată a abonamentului
 app.post('/api/create-subscription-session', async (req, res) => {
     try {
         const { name, category, neighborhood, description, phone, email, plan, amount } = req.body;
@@ -145,7 +148,7 @@ app.post('/api/create-subscription-session', async (req, res) => {
                             name: `HomeMatch Miami - Plan ${plan}`,
                             description: `${category} listing for ${name} in ${neighborhood}`,
                         },
-                        unit_amount: amount * 100, // Suma în cenți
+                        unit_amount: amount * 100,
                     },
                     quantity: 1,
                 },
@@ -222,6 +225,70 @@ app.delete('/api/leads/:id', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: 'Error deleting lead' });
+    }
+});
+
+// Endpoint Stripe pentru deblocarea unui lead contra sumei de $15
+app.post('/api/create-checkout-session', async (req, res) => {
+    try {
+        const { leadId } = req.body;
+        const lead = await Lead.findById(leadId);
+        
+        if (!lead) {
+            return res.status(404).json({ error: 'Lead-ul nu a fost găsit.' });
+        }
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: `HomeMatch Miami - Unlock Lead (${lead.service})`,
+                            description: `Deblocare adresă și contact pentru cererea din ${lead.address}`,
+                        },
+                        unit_amount: 1500, // $15.00
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `https://homematch-miami.onrender.com/index.html?success=true&leadId=${leadId}`,
+            cancel_url: `https://homematch-miami.onrender.com/index.html?canceled=true`,
+        });
+
+        res.json({ url: session.url });
+    } catch (err) {
+        console.error('Erore Stripe Checkout Lead:', err);
+        res.status(500).json({ error: 'Erore la generarea sesiunii de plată.' });
+    }
+});
+
+// Endpoint pentru deblocarea efectivă a datelor după plata Stripe
+app.post('/api/leads/:id/unlock', async (req, res) => {
+    try {
+        const lead = await Lead.findByIdAndUpdate(req.params.id, { unlocked: true }, { new: true });
+        res.json({ success: true, lead });
+    } catch (err) {
+        res.status(500).json({ error: 'Erore la deblocarea lead-ului' });
+    }
+});
+
+// Endpoint pentru contorul de vizite
+app.get('/api/stats', async (req, res) => {
+    try {
+        let stats = await Stats.findOne();
+        if (!stats) {
+            stats = new Stats({ pageViews: 1240 });
+            await stats.save();
+        } else {
+            stats.pageViews += 1;
+            await stats.save();
+        }
+        res.json({ visits: stats.pageViews });
+    } catch (err) {
+        res.status(500).json({ error: 'Erore la statistici' });
     }
 });
 
