@@ -9,11 +9,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conectare MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => console.log('MongoDB Connected'))
+// Linia magică care va face să dispară eroarea "Cannot GET /" 
+// și va arăta site-ul tău vizual (index.html)
+app.use(express.static(__dirname));
+
+// Conectare sigură la MongoDB Atlas fără opțiuni depășite
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Connected Successfully'))
   .catch(err => console.log('MongoDB Connection Error:', err));
 
 // Schematizare Bază de Date pentru Lead-uri
@@ -133,11 +135,11 @@ app.post('/api/create-subscription-session', async (req, res) => {
                 price_data: {
                     currency: 'usd',
                     product_data: { name: planName },
-                    unit_amount: price * 100, // transformat în cenți (ex: 10 devine 1000)
+                    unit_amount: price * 100,
                 },
                 quantity: 1,
             }],
-            mode: 'payment', // Poți folosi 'subscription' dacă setezi prețurile recurente direct în Stripe Dashboard
+            mode: 'payment',
             success_url: `https://homematch-miami.onrender.com/?sub_success=true`,
             cancel_url: `https://homematch-miami.onrender.com/?sub_success=false`,
         });
