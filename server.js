@@ -1,98 +1,107 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
+require('dotenv').config();
+
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname)));
+// Conectare MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log('MongoDB Connection Error:', err));
 
-// Sistem real de stocare a vizitelor într-un fișier local
-const VISITS_FILE = path.join(__dirname, 'visits.json');
+// Schematizare Bază de Date pentru Lead-uri
+const leadSchema = new mongoose.Schema({
+    service: String,
+    clientName: String,
+    contactInfo: String,
+    description: String,
+    address: String,
+    streetAddress: String,
+    zip: String,
+    unlocked: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
+});
+const Lead = mongoose.model('Lead', leadSchema);
 
-function getVisits() {
-    try {
-        if (fs.existsSync(VISITS_FILE)) {
-            const data = fs.readFileSync(VISITS_FILE, 'utf8');
-            return JSON.parse(data).totalVisits || 150;
+// Schematizare pentru Contor Vizite
+const statsSchema = new mongoose.Schema({
+    totalVisits: { type: Number, default: 0 }
+});
+const Stats = mongoose.model('Stats', statsSchema);
+
+// Middleware pentru contorizarea automată a vizitelor
+app.use(async (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+        try {
+            let stats = await Stats.findOne();
+            if (!stats) {
+                stats = new Stats({ totalVisits: 1 });
+            } else {
+                stats.totalVisits += 1;
+            }
+            await stats.save();
+        } catch (err) {
+            console.error('Stats error:', err);
         }
-    } catch (e) {
-        console.error('Eroare citire vizite:', e);
     }
-    return 150;
-}
-
-function saveVisits(count) {
-    try {
-        fs.writeFileSync(VISITS_FILE, JSON.stringify({ totalVisits: count }));
-    } catch (e) {
-        console.error('Eroare salvare vizite:', e);
-    }
-}
-
-let totalVisits = getVisits();
-let leads = [];
-
-// Rută contor vizite real
-app.get('/api/secret-stats', (req, res) => {
-    totalVisits++;
-    saveVisits(totalVisits);
-    res.json({ totalVisits });
+    next();
 });
 
 // Rute pentru Lead-uri
-app.get('/api/leads', (req, res) => {
-    res.json(leads);
-});
-
-app.post('/api/leads', (req, res) => {
-    const newLead = {
-        _id: Date.now().toString(),
-        service: req.body.service,
-        contactInfo: req.body.contactInfo,
-        description: req.body.description,
-        address: req.body.address,
-        zip: req.body.zip,
-        unlocked: false
-    };
-    leads.unshift(newLead);
-    res.status(201).json(newLead);
-});
-
-app.delete('/api/leads/:id', (req, res) => {
-    leads = leads.filter(l => l._id !== req.params.id);
-    res.json({ success: true });
-});
-
-app.post('/api/leads/:id/unlock', (req, res) => {
-    const lead = leads.find(l => l._id === req.params.id);
-    if (lead) {
-        lead.unlocked = true;
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ error: 'Lead not found' });
+app.get('/api/leads', async (req, res) => {
+    try {
+        const leads = await Lead.find().sort({ createdAt: -1 });
+        res.json(leads);
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
-// Rută Stripe Checkout sigură
-app.post('/api/create-checkout-session', async (req, res) => {
+app.post('/api/leads', async (req, res) => {
     try {
-        const { leadId } = req.body;
-        if (!process.env.STRIPE_SECRET_KEY) {
-            return res.status(500).json({ error: 'Stripe secret key is not configured on server.' });
-        }
+        const newLead = new Lead(req.body);
+        await newLead.save();
+        res.status(201).json(newLead);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to create lead' });
+    }
+});
 
+app.delete('/api/leads/:id', async (req, res) => {
+    try {
+        await Lead.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Lead deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete lead' });
+    }
+});
+
+app.post('/api/leads/:id/unlock', async (req, res) => {
+    try {
+        const lead = await Lead.findByIdAndUpdate(req.params.id, { unlocked: true }, { new: true });
+        res.json(lead);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to unlock lead' });
+    }
+});
+
+// Rută Stripe Checkout pentru deblocare Lead ($15)
+app.post('/api/create-checkout-session', async (req, res) => {
+    const { leadId } = req.body;
+    try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
                 price_data: {
                     currency: 'usd',
-                    product_data: {
-                        name: 'Unlock Emergency Lead Contact Info - HomeMatch Miami',
-                    },
+                    product_data: { name: 'Unlock Emergency Lead Contact & Address' },
                     unit_amount: 1500, // 15.00 USD
                 },
                 quantity: 1,
@@ -103,12 +112,54 @@ app.post('/api/create-checkout-session', async (req, res) => {
         });
         res.json({ url: session.url });
     } catch (err) {
-        console.error('Stripe error detaliat:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-    console.log(`Serverul rulează pe portul ${PORT}`);
+// Rută Stripe Checkout pentru Abonamente Contractori ($10, $20, $40, $80)
+app.post('/api/create-subscription-session', async (req, res) => {
+    const { planType, price } = req.body;
+    
+    let planName = 'Pro Membership';
+    if (planType === '1_month') planName = 'Starter Pro Plan (1 Month)';
+    if (planType === '3_months') planName = 'Quarterly Pro Plan (3 Months)';
+    if (planType === '6_months') planName = 'Semi-Annual Pro Plan (6 Months)';
+    if (planType === '1_year') planName = 'Annual Pro Plan (1 Year)';
+
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+                price_data: {
+                    currency: 'usd',
+                    product_data: { name: planName },
+                    unit_amount: price * 100, // transformat în cenți (ex: 10 devine 1000)
+                },
+                quantity: 1,
+            }],
+            mode: 'payment', // Poți folosi 'subscription' dacă setezi prețurile recurente direct în Stripe Dashboard
+            success_url: `https://homematch-miami.onrender.com/?sub_success=true`,
+            cancel_url: `https://homematch-miami.onrender.com/?sub_success=false`,
+        });
+        res.json({ url: session.url });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
+
+// Rută pentru preluarea numărului de vizite
+app.get('/api/secret-stats', async (req, res) => {
+    try {
+        let stats = await Stats.findOne();
+        if (!stats) {
+            stats = new Stats({ totalVisits: 1 });
+            await stats.save();
+        }
+        res.json({ totalVisits: stats.totalVisits });
+    } catch (err) {
+        res.status(500).json({ error: 'Stats error' });
+    }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
