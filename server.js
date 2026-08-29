@@ -1,27 +1,47 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
-
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const nodemailer = require('nodemailer');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'cheia_ta_secreta_stripe_aici');
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-// Permite afișarea fișierelor statice (index.html)
-app.use(express.static(__dirname));
+// Conectare la MongoDB Atlas (preia din variabila de mediu de pe Render sau folosește fallback-ul)
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://iulianpopa433_db_user:asP2WUlGA60i95AU@cluster0.sfkeudx.mongodb.net/homematch-miami?retryWrites=true&w=majority&appName=Cluster0';
 
-// Conectare sigură la MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected Successfully'))
-  .catch(err => console.log('MongoDB Connection Error:', err));
+mongoose.connect(MONGO_URI)
+    .then(() => console.log('Conectat la MongoDB cu succes!'))
+    .catch(err => console.error('Erore la conectarea MongoDB:', err));
 
-// ==========================================
-// 1. SCHEME BAZĂ DE DATE
-// ==========================================
+// Configurare transportator email (Nodemailer)
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.mailtrap.io',
+    port: process.env.SMTP_PORT || 2525,
+    auth: {
+        user: process.env.SMTP_USER || 'user',
+        pass: process.env.SMTP_PASS || 'pass'
+    }
+});
 
-// Schematizare Lead-uri (Clienți care cer servicii)
+// Schema pentru Contractor / Firme
+const contractorSchema = new mongoose.Schema({
+    name: String,
+    category: String,
+    neighborhood: String,
+    description: String,
+    phone: String,
+    email: String,
+    planType: String,
+    pricePaid: Number,
+    expiresAt: { type: Date, required: true },
+    reminderSent: { type: Boolean, default: false }
+});
+
+const Contractor = mongoose.model('Contractor', contractorSchema);
+
+// Schema pentru Lead-uri
 const leadSchema = new mongoose.Schema({
     service: String,
     clientName: String,
@@ -30,92 +50,157 @@ const leadSchema = new mongoose.Schema({
     address: String,
     streetAddress: String,
     zip: String,
-    unlocked: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now }
+    unlocked: { type: Boolean, default: false }
 });
+
 const Lead = mongoose.model('Lead', leadSchema);
 
-// Schematizare pentru Firme / Meseriași (Director pe categorii)
-const proSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    category: { type: String, required: true }, // ex: 'plumbing', 'hvac', 'electrical', 'remodeling', 'roofing', 'pools'
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
-    address: { type: String, required: true },
-    // Status abonament bazat pe zile plătite (30, 60, 120)
-    subscriptionExpiresAt: { type: Date, default: null },
-    packageDays: { type: Number, default: 30 },
-    createdAt: { type: Date, default: Date.now }
-});
-const Pro = mongoose.model('Pro', proSchema);
+// Funcție pentru calcularea datei de expirare
+function calculateExpirationDate(planType) {
+    const date = new Date();
+    if (planType === '1_month') date.setMonth(date.getMonth() + 1);
+    else if (planType === '3_months') date.setMonth(date.getMonth() + 3);
+    else if (planType === '6_months') date.setMonth(date.getMonth() + 6);
+    else if (planType === '1_year') date.setFullYear(date.getFullYear() + 1);
+    else date.setDate(date.getDate() + 30);
+    return date;
+}
 
-// Schematizare Contor Vizite
-const statsSchema = new mongoose.Schema({
-    totalVisits: { type: Number, default: 0 }
-});
-const Stats = mongoose.model('Stats', statsSchema);
+// Funcție automată: trimite reminder și șterge firmele expirate
+async function checkSubscriptionsAndNotify() {
+    try {
+        const now = new Date();
+        const threeDaysFromNow = new Date();
+        threeDaysFromNow.setDate(now.getDate() + 3);
 
-// Middleware pentru contorizarea automată a vizitelor
-app.use(async (req, res, next) => {
-    if (req.path.startsWith('/api')) {
-        try {
-            let stats = await Stats.findOne();
-            if (!stats) {
-                stats = new Stats({ totalVisits: 1 });
-            } else {
-                stats.totalVisits += 1;
+        const expiringSoon = await Contractor.find({
+            expiresAt: { $lte: threeDaysFromNow, $gt: now },
+            reminderSent: false
+        });
+
+        for (const pro of expiringSoon) {
+            if (pro.email) {
+                await transporter.sendMail({
+                    from: '"HomeMatch Miami" <noreply@homematchmiami.com>',
+                    to: pro.email,
+                    subject: 'Abonamentul tău HomeMatch Miami expiră în curând!',
+                    text: `Salut ${pro.name}, abonamentul tău pentru categoria ${pro.category} expiră pe ${pro.expiresAt.toLocaleDateString()}. Reînnoiește-l pentru a nu pierde vizibilitatea în Miami!`
+                });
+                pro.reminderSent = true;
+                await pro.save();
             }
-            await stats.save();
-        } catch (err) {
-            console.error('Stats error:', err);
         }
-    }
-    next();
-});
 
-// ==========================================
-// 2. RUTE PENTRU FIRME / MESERIAȘI (PROS)
-// ==========================================
-
-// Obține doar firmele active dintr-o anumită categorie (ale căror abonamente nu au expirat)
-app.get('/api/pros/:category', async (req, res) => {
-    try {
-        const category = req.params.category;
-        const currentDate = new Date();
-
-        // Găsește doar firmele care au abonamentul valabil (data de expirare > acum)
-        const activePros = await Pro.find({
-            category: category,
-            subscriptionExpiresAt: { $gt: currentDate }
-        }).sort({ createdAt: -1 });
-
-        res.json(activePros);
+        const expiredPros = await Contractor.find({ expiresAt: { $lt: now } });
+        for (const pro of expiredPros) {
+            if (pro.email) {
+                await transporter.sendMail({
+                    from: '"HomeMatch Miami" <noreply@homematchmiami.com>',
+                    to: pro.email,
+                    subject: 'Abonamentul tău HomeMatch Miami a expirat',
+                    text: `Salut ${pro.name}, perioada plătită a expirat și reclama ta a fost eliminată din director.`
+                });
+            }
+            await Contractor.findByIdAndDelete(pro._id);
+        }
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch pros' });
+        console.error('Erore la verificarea abonamentelor:', err);
     }
-});
+}
 
-// Înregistrare firmă nouă (înainte de plată sau adăugată din admin)
-app.post('/api/pros', async (req, res) => {
+setInterval(checkSubscriptionsAndNotify, 12 * 60 * 60 * 1000);
+
+// --- ENDPOINT-URI API ---
+
+app.get('/api/contractors', async (req, res) => {
     try {
-        const newPro = new Pro(req.body);
-        await newPro.save();
-        res.status(201).json(newPro);
+        const { category } = req.query;
+        const now = new Date();
+        await Contractor.deleteMany({ expiresAt: { $lt: now } });
+
+        let query = {};
+        if (category) query.category = category;
+
+        const contractors = await Contractor.find(query);
+        res.json(contractors);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to create pro' });
+        res.status(500).json({ error: 'Erore la preluarea contractorilor' });
     }
 });
 
-// ==========================================
-// 3. RUTE PENTRU LEAD-URI
-// ==========================================
+// Endpoint Stripe pentru generarea sesiunii de plată a abonamentului
+app.post('/api/create-subscription-session', async (req, res) => {
+    try {
+        const { name, category, neighborhood, description, phone, email, plan, amount } = req.body;
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: {
+                            name: `HomeMatch Miami - Plan ${plan}`,
+                            description: `${category} listing for ${name} in ${neighborhood}`,
+                        },
+                        unit_amount: amount * 100, // Suma în cenți
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `https://homematch-miami.onrender.com/register.html?success=true`,
+            cancel_url: `https://homematch-miami.onrender.com/register.html?canceled=true`,
+            metadata: {
+                name,
+                category,
+                neighborhood,
+                description,
+                phone,
+                email,
+                planType: plan,
+                pricePaid: amount
+            }
+        });
+
+        res.json({ url: session.url });
+    } catch (err) {
+        console.error('Erore Stripe Checkout:', err);
+        res.status(500).json({ error: 'Erore la generarea sesiunii de plată Stripe.' });
+    }
+});
+
+app.post('/api/save-contractor-subscription', async (req, res) => {
+    try {
+        const { name, category, neighborhood, description, phone, email, planType, price } = req.body;
+        const expiresAt = calculateExpirationDate(planType);
+
+        const newContractor = new Contractor({
+            name,
+            category,
+            neighborhood,
+            description,
+            phone,
+            email,
+            planType,
+            pricePaid: price,
+            expiresAt,
+            reminderSent: false
+        });
+
+        await newContractor.save();
+        res.json({ success: true, message: 'Abonament activat cu succes!', expiresAt });
+    } catch (err) {
+        res.status(500).json({ error: 'Erore la salvarea abonamentului' });
+    }
+});
 
 app.get('/api/leads', async (req, res) => {
     try {
-        const leads = await Lead.find().sort({ createdAt: -1 });
+        const leads = await Lead.find();
         res.json(leads);
     } catch (err) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Error fetching leads' });
     }
 });
 
@@ -125,135 +210,18 @@ app.post('/api/leads', async (req, res) => {
         await newLead.save();
         res.status(201).json(newLead);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to create lead' });
+        res.status(500).json({ error: 'Error creating lead' });
     }
 });
 
 app.delete('/api/leads/:id', async (req, res) => {
     try {
         await Lead.findByIdAndDelete(req.params.id);
-        res.json({ message: 'Lead deleted successfully' });
+        res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ error: 'Failed to delete lead' });
+        res.status(500).json({ error: 'Error deleting lead' });
     }
 });
 
-app.post('/api/leads/:id/unlock', async (req, res) => {
-    try {
-        const lead = await Lead.findByIdAndUpdate(req.params.id, { unlocked: true }, { new: true });
-        res.json(lead);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to unlock lead' });
-    }
-});
-
-// ==========================================
-// 4. RUTE STRIPE CHECKOUT (PREȚURI DE MIAMI)
-// ==========================================
-
-// Rută Stripe Checkout pentru deblocare Lead ($15) sau Deblocare Contact Firmă ($4)
-app.post('/api/create-checkout-session', async (req, res) => {
-    const { leadId, type, amount, itemName } = req.body;
-    
-    // Setăm valorile implicite pentru lead dacă nu sunt trimise
-    const finalAmount = amount ? amount * 100 : 1500; // ex: $15 sau $4 în cenți
-    const name = itemName || 'Unlock Emergency Lead Contact & Address';
-
-    try {
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [{
-                price_data: {
-                    currency: 'usd',
-                    product_data: { name: name },
-                    unit_amount: finalAmount,
-                },
-                quantity: 1,
-            }],
-            mode: 'payment',
-            success_url: `https://homematch-miami.onrender.com/?success=true&leadId=${leadId || ''}`,
-            cancel_url: `https://homematch-miami.onrender.com/?success=false`,
-        });
-        res.json({ url: session.url });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Rută Stripe Checkout pentru Abonamente Firme (Pachete practice Miami: 30z-$49, 60z-$129, 120z-$229)
-app.post('/api/create-subscription-session', async (req, res) => {
-    const { planType, proId } = req.body;
-    
-    let planName = 'Pro Membership';
-    let priceInCents = 4900; // $49 implicit (30 zile)
-    let daysToAdd = 30;
-
-    if (planType === '30_days') {
-        planName = 'Miami Pro Plan (30 Days)';
-        priceInCents = 4900; // $49
-        daysToAdd = 30;
-    } else if (planType === '60_days') {
-        planName = 'Miami Pro Plan (60 Days)';
-        priceInCents = 12900; // $129
-        daysToAdd = 60;
-    } else if (planType === '120_days') {
-        planName = 'Miami Pro Plan (120 Days)';
-        priceInCents = 22900; // $229
-        daysToAdd = 120;
-    }
-
-    try {
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [{
-                price_data: {
-                    currency: 'usd',
-                    product_data: { name: planName },
-                    unit_amount: priceInCents,
-                },
-                quantity: 1,
-            }],
-            mode: 'payment',
-            success_url: `https://homematch-miami.onrender.com/?sub_success=true&proId=${proId || ''}&days=${daysToAdd}`,
-            cancel_url: `https://homematch-miami.onrender.com/?sub_success=false`,
-        });
-        res.json({ url: session.url });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Rută pentru prelungirea automată a abonamentului după plata cu succes
-app.post('/api/pros/:id/extend-subscription', async (req, res) => {
-    try {
-        const days = parseInt(req.body.days) || 30;
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + days);
-
-        const pro = await Pro.findByIdAndUpdate(
-            req.params.id, 
-            { subscriptionExpiresAt: expiryDate, packageDays: days }, 
-            { new: true }
-        );
-        res.json(pro);
-    } catch (err) {
-        res.status(500).json({ error: 'Failed to update subscription' });
-    }
-});
-
-// Rută pentru preluarea numărului de vizite
-app.get('/api/secret-stats', async (req, res) => {
-    try {
-        let stats = await Stats.findOne();
-        if (!stats) {
-            stats = new Stats({ totalVisits: 1 });
-            await stats.save();
-        }
-        res.json({ totalVisits: stats.totalVisits });
-    } catch (err) {
-        res.status(500).json({ error: 'Stats error' });
-    }
-});
-
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Serverul rulează pe portul, ${PORT}`));
