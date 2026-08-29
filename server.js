@@ -9,16 +9,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Linia magică care va face să dispară eroarea "Cannot GET /" 
-// și va arăta site-ul tău vizual (index.html)
+// Permite afișarea fișierelor statice (index.html)
 app.use(express.static(__dirname));
 
-// Conectare sigură la MongoDB Atlas fără opțiuni depășite
+// Conectare sigură la MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB Connected Successfully'))
   .catch(err => console.log('MongoDB Connection Error:', err));
 
-// Schematizare Bază de Date pentru Lead-uri
+// ==========================================
+// 1. SCHEME BAZĂ DE DATE
+// ==========================================
+
+// Schematizare Lead-uri (Clienți care cer servicii)
 const leadSchema = new mongoose.Schema({
     service: String,
     clientName: String,
@@ -32,7 +35,21 @@ const leadSchema = new mongoose.Schema({
 });
 const Lead = mongoose.model('Lead', leadSchema);
 
-// Schematizare pentru Contor Vizite
+// Schematizare pentru Firme / Meseriași (Director pe categorii)
+const proSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    category: { type: String, required: true }, // ex: 'plumbing', 'hvac', 'electrical', 'remodeling', 'roofing', 'pools'
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
+    // Status abonament bazat pe zile plătite (30, 60, 120)
+    subscriptionExpiresAt: { type: Date, default: null },
+    packageDays: { type: Number, default: 30 },
+    createdAt: { type: Date, default: Date.now }
+});
+const Pro = mongoose.model('Pro', proSchema);
+
+// Schematizare Contor Vizite
 const statsSchema = new mongoose.Schema({
     totalVisits: { type: Number, default: 0 }
 });
@@ -56,7 +73,43 @@ app.use(async (req, res, next) => {
     next();
 });
 
-// Rute pentru Lead-uri
+// ==========================================
+// 2. RUTE PENTRU FIRME / MESERIAȘI (PROS)
+// ==========================================
+
+// Obține doar firmele active dintr-o anumită categorie (ale căror abonamente nu au expirat)
+app.get('/api/pros/:category', async (req, res) => {
+    try {
+        const category = req.params.category;
+        const currentDate = new Date();
+
+        // Găsește doar firmele care au abonamentul valabil (data de expirare > acum)
+        const activePros = await Pro.find({
+            category: category,
+            subscriptionExpiresAt: { $gt: currentDate }
+        }).sort({ createdAt: -1 });
+
+        res.json(activePros);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to fetch pros' });
+    }
+});
+
+// Înregistrare firmă nouă (înainte de plată sau adăugată din admin)
+app.post('/api/pros', async (req, res) => {
+    try {
+        const newPro = new Pro(req.body);
+        await newPro.save();
+        res.status(201).json(newPro);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to create pro' });
+    }
+});
+
+// ==========================================
+// 3. RUTE PENTRU LEAD-URI
+// ==========================================
+
 app.get('/api/leads', async (req, res) => {
     try {
         const leads = await Lead.find().sort({ createdAt: -1 });
@@ -94,22 +147,31 @@ app.post('/api/leads/:id/unlock', async (req, res) => {
     }
 });
 
-// Rută Stripe Checkout pentru deblocare Lead ($15)
+// ==========================================
+// 4. RUTE STRIPE CHECKOUT (PREȚURI DE MIAMI)
+// ==========================================
+
+// Rută Stripe Checkout pentru deblocare Lead ($15) sau Deblocare Contact Firmă ($4)
 app.post('/api/create-checkout-session', async (req, res) => {
-    const { leadId } = req.body;
+    const { leadId, type, amount, itemName } = req.body;
+    
+    // Setăm valorile implicite pentru lead dacă nu sunt trimise
+    const finalAmount = amount ? amount * 100 : 1500; // ex: $15 sau $4 în cenți
+    const name = itemName || 'Unlock Emergency Lead Contact & Address';
+
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
                 price_data: {
                     currency: 'usd',
-                    product_data: { name: 'Unlock Emergency Lead Contact & Address' },
-                    unit_amount: 1500, // 15.00 USD
+                    product_data: { name: name },
+                    unit_amount: finalAmount,
                 },
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `https://homematch-miami.onrender.com/?success=true&leadId=${leadId}`,
+            success_url: `https://homematch-miami.onrender.com/?success=true&leadId=${leadId || ''}`,
             cancel_url: `https://homematch-miami.onrender.com/?success=false`,
         });
         res.json({ url: session.url });
@@ -118,15 +180,27 @@ app.post('/api/create-checkout-session', async (req, res) => {
     }
 });
 
-// Rută Stripe Checkout pentru Abonamente Contractori ($10, $20, $40, $80)
+// Rută Stripe Checkout pentru Abonamente Firme (Pachete practice Miami: 30z-$49, 60z-$129, 120z-$229)
 app.post('/api/create-subscription-session', async (req, res) => {
-    const { planType, price } = req.body;
+    const { planType, proId } = req.body;
     
     let planName = 'Pro Membership';
-    if (planType === '1_month') planName = 'Starter Pro Plan (1 Month)';
-    if (planType === '3_months') planName = 'Quarterly Pro Plan (3 Months)';
-    if (planType === '6_months') planName = 'Semi-Annual Pro Plan (6 Months)';
-    if (planType === '1_year') planName = 'Annual Pro Plan (1 Year)';
+    let priceInCents = 4900; // $49 implicit (30 zile)
+    let daysToAdd = 30;
+
+    if (planType === '30_days') {
+        planName = 'Miami Pro Plan (30 Days)';
+        priceInCents = 4900; // $49
+        daysToAdd = 30;
+    } else if (planType === '60_days') {
+        planName = 'Miami Pro Plan (60 Days)';
+        priceInCents = 12900; // $129
+        daysToAdd = 60;
+    } else if (planType === '120_days') {
+        planName = 'Miami Pro Plan (120 Days)';
+        priceInCents = 22900; // $229
+        daysToAdd = 120;
+    }
 
     try {
         const session = await stripe.checkout.sessions.create({
@@ -135,17 +209,35 @@ app.post('/api/create-subscription-session', async (req, res) => {
                 price_data: {
                     currency: 'usd',
                     product_data: { name: planName },
-                    unit_amount: price * 100,
+                    unit_amount: priceInCents,
                 },
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `https://homematch-miami.onrender.com/?sub_success=true`,
+            success_url: `https://homematch-miami.onrender.com/?sub_success=true&proId=${proId || ''}&days=${daysToAdd}`,
             cancel_url: `https://homematch-miami.onrender.com/?sub_success=false`,
         });
         res.json({ url: session.url });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// Rută pentru prelungirea automată a abonamentului după plata cu succes
+app.post('/api/pros/:id/extend-subscription', async (req, res) => {
+    try {
+        const days = parseInt(req.body.days) || 30;
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + days);
+
+        const pro = await Pro.findByIdAndUpdate(
+            req.params.id, 
+            { subscriptionExpiresAt: expiryDate, packageDays: days }, 
+            { new: true }
+        );
+        res.json(pro);
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update subscription' });
     }
 });
 
@@ -163,5 +255,5 @@ app.get('/api/secret-stats', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
