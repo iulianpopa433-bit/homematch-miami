@@ -113,7 +113,8 @@ app.post('/api/leads/:id/unlock', (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Serverul rulează pe http://localhost:${PORT}`);
+// Setare corectă pentru Render ('0.0.0.0' și portul din mediu)
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Serverul rulează pe portul ${PORT}`);
 });
