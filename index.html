@@ -178,7 +178,6 @@
                 <h3 class="text-2xl font-bold text-slate-900 mb-4">Live Service Requests ($15 Unlock)</h3>
                 <p class="text-slate-600 text-sm mb-6">Contractors: Unlock client contact info securely via Stripe.</p>
                 <div id="leads-container" class="space-y-4 overflow-y-auto max-h-[450px] flex-grow">
-                    <!-- Dinamic încărcat prin JavaScript -->
                     <p class="text-slate-400 text-sm italic">Loading live requests...</p>
                 </div>
             </div>
@@ -225,9 +224,9 @@
         </div>
     </footer>
 
-    <!-- JavaScript pentru conectarea cu Backend-ul și Stripe -->
+    <!-- JavaScript cu URL complet pentru Render -->
     <script>
-        const API_URL = ''; 
+        const API_URL = 'https://homematch-miami.onrender.com';
 
         window.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -237,7 +236,7 @@
             if (success === 'true' && leadId) {
                 try {
                     await fetch(`${API_URL}/api/leads/${leadId}/unlock`, { method: 'POST' });
-                    alert('Payment successful! This request is now claimed and will auto-delete in 10 minutes.');
+                    alert('Payment successful! This request is now claimed.');
                     window.history.replaceState({}, document.title, window.location.pathname);
                 } catch (err) {
                     console.error('Unlock error:', err);
@@ -247,7 +246,6 @@
             loadStats();
         });
 
-        // Trimitere cerere nouă (Client)
         document.getElementById('lead-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const service = document.getElementById('service').value;
@@ -272,7 +270,6 @@
             }
         });
 
-        // Ștergere manuală cerere (dacă clientul s-a răzgândit)
         async function deleteLead(leadId) {
             if (confirm('Are you sure you want to delete this request?')) {
                 try {
@@ -288,7 +285,6 @@
             }
         }
 
-        // Încărcare lead-uri în pagină
         async function loadLeads() {
             const container = document.getElementById('leads-container');
             try {
@@ -316,7 +312,7 @@
                         </div>
                         <div>
                             ${lead.unlocked 
-                                ? '<div class="flex justify-between items-center"><span class="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg">Claimed by Pro ✓</span> <span class="text-[11px] text-slate-500 italic">Auto-deletes soon</span></div>' 
+                                ? '<div class="flex justify-between items-center"><span class="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-lg">Claimed by Pro ✓</span></div>' 
                                 : `<button onclick="checkoutLead('${lead._id}')" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold text-xs py-2 rounded-lg transition shadow-xs">Unlock Contact Info ($15)</button>`
                             }
                         </div>
@@ -327,7 +323,6 @@
             }
         }
 
-        // Inițiere sesiune Stripe Checkout
         async function checkoutLead(leadId) {
             try {
                 const res = await fetch(`${API_URL}/api/create-checkout-session`, {
@@ -346,7 +341,6 @@
             }
         }
 
-        // Funcție pentru încărcarea contorului de vizite
         async function loadStats() {
             try {
                 const res = await fetch(`${API_URL}/api/secret-stats`);

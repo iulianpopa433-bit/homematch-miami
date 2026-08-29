@@ -1,120 +1,87 @@
 const express = require('express');
 const cors = require('cors');
-const stripe = require('stripe')('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');
+const path = require('path');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
-app.use(express.json());
 app.use(cors());
-app.use(express.static(__dirname));
+app.use(express.json());
 
-let leadsDatabase = [];
-let visitCount = 0; // Contorul secret de vizite
+// Servire fișiere statice
+app.use(express.static(path.join(__dirname)));
 
-// Contorizează vizitele pe pagina principală
-app.get('/', (req, res, next) => {
-    visitCount++;
-    next();
-});
+// Baza de date în memorie (sau baza ta curentă)
+let leads = [];
+let totalVisits = 120; // sau pornește de la ce valoare dorești
 
-// Rută pentru a prelua numărul de vizite în mod discret pe site
+// Rută contor vizite
 app.get('/api/secret-stats', (req, res) => {
-    res.json({ totalVisits: visitCount });
+    totalVisits++;
+    res.json({ totalVisits });
 });
 
-// Obține toate lead-urile și șterge-le automat pe cele deblocate acum mai mult de 10 minute
+// Rute pentru Lead-uri
 app.get('/api/leads', (req, res) => {
-    const now = Date.now();
-    leadsDatabase = leadsDatabase.filter(lead => {
-        if (lead.unlocked && lead.unlockedAt) {
-            return (now - lead.unlockedAt) < 10 * 60 * 1000;
-        }
-        return true;
-    });
-    res.json(leadsDatabase);
+    res.json(leads);
 });
 
-// Adaugă o cerere nouă
 app.post('/api/leads', (req, res) => {
     const newLead = {
         _id: Date.now().toString(),
-        ...req.body,
-        unlocked: false,
-        unlockedAt: null
+        service: req.body.service,
+        contactInfo: req.body.contactInfo,
+        description: req.body.description,
+        address: req.body.address,
+        zip: req.body.zip,
+        unlocked: false
     };
-    leadsDatabase.unshift(newLead);
-    res.status(201).json({ message: 'Cerere înregistrată cu succes!', lead: newLead });
+    leads.unshift(newLead);
+    res.status(201).json(newLead);
 });
 
-// Șterge o cerere manual
 app.delete('/api/leads/:id', (req, res) => {
-    const leadId = req.params.id;
-    const initialLength = leadsDatabase.length;
-    leadsDatabase = leadsDatabase.filter(l => l._id !== leadId);
-    
-    if (leadsDatabase.length < initialLength) {
-        res.json({ message: 'Cererea a fost ștersă cu succes!' });
+    leads = leads.filter(l => l._id !== req.params.id);
+    res.json({ success: true });
+});
+
+app.post('/api/leads/:id/unlock', (req, res) => {
+    const lead = leads.find(l => l._id === req.params.id);
+    if (lead) {
+        lead.unlocked = true;
+        res.json({ success: true });
     } else {
-        res.status(404).json({ error: 'Cererea nu a fost găsită.' });
+        res.status(404).json({ error: 'Lead not found' });
     }
 });
 
-// Creare sesiune Stripe Checkout
+// Rută Stripe Checkout
 app.post('/api/create-checkout-session', async (req, res) => {
-    const { leadId } = req.body;
-    const lead = leadsDatabase.find(l => l._id === leadId);
-
-    if (!lead) {
-        return res.status(404).json({ error: 'Lead negăsit' });
-    }
-
     try {
+        const { leadId } = req.body;
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            locale: 'en',
             line_items: [{
                 price_data: {
                     currency: 'usd',
                     product_data: {
-                        name: `HomeMatch Miami Lead: ${lead.service}`,
-                        description: `Contact & issue details for job in ${lead.address}, ZIP: ${lead.zip}`,
+                        name: 'Unlock Emergency Lead Contact Info',
                     },
-                    unit_amount: 1500,
+                    unit_amount: 1500, // 15.00 USD
                 },
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `https://homematch-miami.onrender.com?success=true&leadId=${leadId}`,
-            cancel_url: `https://homematch-miami.onrender.com?canceled=true`,
+            success_url: `https://homematch-miami.onrender.com/?success=true&leadId=${leadId}`,
+            cancel_url: `https://homematch-miami.onrender.com/?success=false`,
         });
-
         res.json({ url: session.url });
     } catch (err) {
+        console.error('Stripe error:', err);
         res.status(500).json({ error: err.message });
     }
 });
 
-// Deblocare lead după plată cu succes
-app.post('/api/leads/:id/unlock', (req, res) => {
-    const leadId = req.params.id;
-    let found = null;
-    leadsDatabase = leadsDatabase.map(lead => {
-        if (lead._id === leadId) {
-            lead.unlocked = true;
-            lead.unlockedAt = Date.now();
-            found = lead;
-        }
-        return lead;
-    });
-    
-    if (found) {
-        res.json({ message: 'Lead deblocat cu succes!', lead: found });
-    } else {
-        res.status(404).json({ error: 'Lead negăsit' });
-    }
-});
-
-// Setare corectă pentru Render ('0.0.0.0' și portul din mediu)
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
     console.log(`Serverul rulează pe portul ${PORT}`);
 });
