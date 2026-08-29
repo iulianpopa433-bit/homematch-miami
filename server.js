@@ -1,22 +1,45 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Servire fișiere statice
 app.use(express.static(path.join(__dirname)));
 
-// Baza de date în memorie (sau baza ta curentă)
-let leads = [];
-let totalVisits = 120; // sau pornește de la ce valoare dorești
+// Sistem real de stocare a vizitelor într-un fișier local
+const VISITS_FILE = path.join(__dirname, 'visits.json');
 
-// Rută contor vizite
+function getVisits() {
+    try {
+        if (fs.existsSync(VISITS_FILE)) {
+            const data = fs.readFileSync(VISITS_FILE, 'utf8');
+            return JSON.parse(data).totalVisits || 150;
+        }
+    } catch (e) {
+        console.error('Eroare citire vizite:', e);
+    }
+    return 150;
+}
+
+function saveVisits(count) {
+    try {
+        fs.writeFileSync(VISITS_FILE, JSON.stringify({ totalVisits: count }));
+    } catch (e) {
+        console.error('Eroare salvare vizite:', e);
+    }
+}
+
+let totalVisits = getVisits();
+let leads = [];
+
+// Rută contor vizite real
 app.get('/api/secret-stats', (req, res) => {
     totalVisits++;
+    saveVisits(totalVisits);
     res.json({ totalVisits });
 });
 
@@ -54,17 +77,21 @@ app.post('/api/leads/:id/unlock', (req, res) => {
     }
 });
 
-// Rută Stripe Checkout
+// Rută Stripe Checkout sigură
 app.post('/api/create-checkout-session', async (req, res) => {
     try {
         const { leadId } = req.body;
+        if (!process.env.STRIPE_SECRET_KEY) {
+            return res.status(500).json({ error: 'Stripe secret key is not configured on server.' });
+        }
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
                 price_data: {
                     currency: 'usd',
                     product_data: {
-                        name: 'Unlock Emergency Lead Contact Info',
+                        name: 'Unlock Emergency Lead Contact Info - HomeMatch Miami',
                     },
                     unit_amount: 1500, // 15.00 USD
                 },
@@ -76,7 +103,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
         });
         res.json({ url: session.url });
     } catch (err) {
-        console.error('Stripe error:', err);
+        console.error('Stripe error detaliat:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
