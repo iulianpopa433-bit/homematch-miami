@@ -1,212 +1,239 @@
-!DOCTYPE html
-html lang=en
-head
-    meta charset=UTF-8
-    meta name=viewport content=width=device-width, initial-scale=1.0
-    titleMiami Concierge & Marketplacetitle
-    !-- Tailwind CSS CDN --
-    script src=httpscdn.tailwindcss.comscript
-    !-- Stripe.js pentru plăți --
-    script src=httpsjs.stripe.comv3script
-head
-body class=bg-slate-50 text-slate-800 font-sans antialiased
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Miami Concierge & Marketplace</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Stripe.js pentru plăți -->
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-    !-- Header  Navbar --
-    header class=bg-white border-b border-slate-200 sticky top-0 z-50
-        div class=max-w-7xl mx-auto px-4 h-16 flex items-center justify-between
-            div class=flex items-center space-x-2
-                span class=text-2xl🌴span
-                span class=font-black text-lg tracking-tight text-slate-900MiamiMarketspan class=text-blue-600.aispanspan
-            div
-            nav class=hidden mdflex items-center space-x-6 text-sm font-medium text-slate-600
-                a href=#services class=hovertext-blue-600 transitionServicesa
-                a href=#coverage class=hovertext-blue-600 transitionNeighborhoodsa
-                a href=#pricing class=hovertext-blue-600 transitionPro Plansa
-            nav
-            div
-                a href=#pricing class=bg-blue-600 hoverbg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm
-                    Join as a Pro
-                a
-            div
-        div
-    header
+    <!-- Header Navbar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">🌴</span>
+                <span class="font-black text-lg tracking-tight text-slate-900">MiamiMarket</span>
+            </div>
+            <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
+                <a href="#services" class="hover:text-blue-600 transition">Services</a>
+                <a href="#coverage" class="hover:text-blue-600 transition">Neighborhoods</a>
+                <a href="#deals" class="hover:text-blue-600 transition">Miami Deals</a>
+                <a href="#pricing" class="hover:text-blue-600 transition">Pro Plans</a>
+            </nav>
+            <div>
+                <a href="#pricing" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm">Join as a Pro</a>
+            </div>
+        </div>
+    </header>
 
-    !-- Hero & AI Concierge Search Section --
-    section class=max-w-4xl mx-auto px-4 py-12 text-center
-        span class=bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-4
-            Miami’s Smart Local Marketplace
-        span
-        h1 class=text-3xl mdtext-5xl font-black text-slate-900 tracking-tight leading-tight mb-4
-            Tell us what you need.brspan class=text-blue-600We'll find the best local options.span
-        h1
-        p class=text-base mdtext-lg text-slate-600 max-w-2xl mx-auto mb-8
+    <!-- Hero & AI Concierge Search Section -->
+    <section class="max-w-4xl mx-auto px-4 py-12 text-center">
+        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-4">Miami's Smart Local Marketplace</span>
+        <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+            Tell us what you need. <span class="text-blue-600">We'll find the best local options.</span>
+        </h1>
+        <p class="text-base md:text-lg text-slate-600 max-w-2xl mx-auto mb-8">
             Connect instantly with vetted pros, exclusive local deals, and emergency services across Brickell, Coral Gables, Miami Beach, and more.
-        p
+        </p>
 
-        !-- AI Concierge  Căutare Inteligentă Box --
-        div class=bg-white p-3 rounded-2xl shadow-xl border border-slate-200 max-w-2xl mx-auto mb-10 flex flex-col mdflex-row items-center gap-2
-            div class=flex items-center px-3 text-slate-400 w-full mdw-auto
-                span class=text-xl🤖span
-                span class=text-xs font-semibold uppercase tracking-wider text-slate-500 ml-2 mdhiddenAI Searchspan
-            div
-            input type=text id=ai-search-input placeholder=e.g., My AC stopped working in Brickell today... class=w-full p-3 text-sm focusoutline-none text-slate-700
-            button onclick=runAiSearch() class=w-full mdw-auto bg-blue-600 hoverbg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition shadow-md whitespace-nowrap
-                Find Options
-            button
-        div
+        <!-- AI Concierge Căutare Inteligentă Box -->
+        <div class="bg-white p-3 rounded-2xl shadow-xl border border-slate-200 max-w-2xl mx-auto mb-10 flex flex-col md:flex-row items-center gap-2">
+            <div class="flex items-center px-3 text-slate-400 w-full md:w-auto">
+                <span class="text-xl">🤖</span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-2 hidden md:inline">AI Search</span>
+            </div>
+            <input type="text" id="ai-search-input" placeholder="e.g., My AC stopped working in Brickell today..." class="w-full p-3 text-sm focus:outline-none text-slate-700">
+            <button onclick="runAiSearch()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition shadow-md whitespace-nowrap">Find Options</button>
+        </div>
 
-        !-- Filtre rapide pe Cartiere --
-        div id=coverage class=flex flex-wrap justify-center items-center gap-2 text-xs font-medium text-slate-600
-            span class=text-slate-400 font-semibold mr-1Popular Neighborhoodsspan
-            span class=bg-white px-3 py-1.5 rounded-full border border-slate-200Brickellspan
-            span class=bg-white px-3 py-1.5 rounded-full border border-slate-200Coral Gablesspan
-            span class=bg-white px-3 py-1.5 rounded-full border border-slate-200Miami Beachspan
-            span class=bg-white px-3 py-1.5 rounded-full border border-slate-200Key Biscaynespan
-            span class=bg-white px-3 py-1.5 rounded-full border border-slate-200Wynwoodspan
-        div
-    section
+        <!-- Filtre rapide pe Cartier -->
+        <div id="coverage" class="flex flex-wrap justify-center items-center gap-2 text-xs font-medium text-slate-600">
+            <span class="text-slate-400 font-semibold mr-1">Popular Neighborhoods:</span>
+            <span class="bg-white px-3 py-1.5 rounded-full border border-slate-200">Brickell</span>
+            <span class="bg-white px-3 py-1.5 rounded-full border border-slate-200">Coral Gables</span>
+            <span class="bg-white px-3 py-1.5 rounded-full border border-slate-200">Miami Beach</span>
+            <span class="bg-white px-3 py-1.5 rounded-full border border-slate-200">Key Biscayne</span>
+            <span class="bg-white px-3 py-1.5 rounded-full border border-slate-200">Wynwood</span>
+        </div>
+    </section>
 
-    !-- Secțiune Miami Deals --
-    section class=max-w-7xl mx-auto px-4 pb-12
-        div class=bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 mdp-8 text-white shadow-md flex flex-col mdflex-row justify-between items-center
-            div class=mb-4 mdmb-0
-                span class=bg-white20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widerHot Deals Todayspan
-                h3 class=text-2xl font-black mt-2Special Discounts from Miami Prosh3
-                p class=text-amber-100 text-smSave money on regular maintenance, cleaning, and urgent repairs.p
-            div
-            div class=bg-white text-slate-900 p-4 rounded-2xl shadow-sm text-center
-                span class=block text-xs font-bold text-orange-600 uppercaseAC Tune-Up Dealspan
-                span class=text-xl font-black$59 span class=text-xs text-slate-400 line-through$120spanspan
-                a href=#services class=block mt-2 bg-slate-900 text-white text-xs font-semibold py-1.5 px-4 rounded-lg hoverbg-slate-800 transitionClaim Deala
-            div
-        div
-    section
+    <!-- Secțiune Miami Deals -->
+    <section id="deals" class="max-w-7xl mx-auto px-4 pb-12">
+        <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 md:p-8 text-white shadow-md flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Exclusive Offers</span>
+                <h3 class="text-2xl font-black mt-2">Miami Summer Home Services Deals</h3>
+                <p class="text-white/90 text-sm mt-1">Save big on verified local contractors and emergency inspections this month.</p>
+            </div>
+            <a href="#services" class="bg-white text-orange-600 font-bold px-6 py-3 rounded-xl text-sm shadow-sm hover:bg-slate-100 transition whitespace-nowrap">Claim Deal Now</a>
+        </div>
+    </section>
 
-    !-- Secțiunea de Lead-uri  Servicii --
-    main id=services class=max-w-5xl mx-auto px-4 py-12
-        div class=bg-white rounded-3xl shadow-sm border border-slate-200 p-8
-            h2 class=text-2xl font-bold text-slate-900 mb-2 text-centerRequest a Local Serviceh2
-            p class=text-slate-500 text-center text-sm mb-8Fill out the form below and we'll route your request to top-rated professionals.p
-            
-            form id=lead-form class=space-y-4 max-w-xl mx-auto
-                div
-                    label class=block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1Your Namelabel
-                    input type=text id=lead-name required class=w-full p-3 border border-slate-200 rounded-xl text-sm focusoutline-none focusborder-blue-600
-                div
-                div
-                    label class=block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1Phone Number  Emaillabel
-                    input type=text id=lead-contact required class=w-full p-3 border border-slate-200 rounded-xl text-sm focusoutline-none focusborder-blue-600
-                div
-                div
-                    label class=block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1Service Neededlabel
-                    select id=lead-service class=w-full p-3 border border-slate-200 rounded-xl text-sm focusoutline-none focusborder-blue-600 bg-white
-                        option value=AC RepairAC Repair & Maintenanceoption
-                        option value=PlumbingEmergency Plumbingoption
-                        option value=CleaningDeep Home Cleaningoption
-                        option value=HandymanGeneral Handymanoption
-                    select
-                div
-                button type=submit class=w-full bg-slate-900 hoverbg-slate-800 text-white font-bold p-3.5 rounded-xl text-sm transition shadow-md
-                    Submit Request
-                button
-            form
-        div
-    main
+    <!-- Secțiunea principală: Formular Lead-uri & Listări -->
+    <main class="max-w-7xl mx-auto px-4 pb-20 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Formular Lead-uri (Stânga / Principal) -->
+        <div class="lg:col-span-1">
+            <div id="services" class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200 sticky top-24">
+                <h2 class="text-xl font-bold text-slate-900 mb-6">Request a Local Pro</h2>
+                <form id="leadForm" onsubmit="submitLead(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Service Needed</label>
+                        <select id="service" class="w-full p-3 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none">
+                            <option value="Plumbing">Plumbing / Emergency Repair</option>
+                            <option value="AC Repair">AC & HVAC Repair</option>
+                            <option value="Electrical">Electrician</option>
+                            <option value="Legal">Lawyer / Legal Services</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Your Name</label>
+                        <input type="text" id="name" required placeholder="John Doe" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Phone or Email</label>
+                        <input type="text" id="contact" required placeholder="phone / email" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Neighborhood in Miami</label>
+                        <input type="text" id="neighborhood" placeholder="e.g. Brickell" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Description (Optional)</label>
+                        <textarea id="description" rows="2" placeholder="Briefly describe what you need..." class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 hover:bg-blue-600 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-md">Submit Request</button>
+                </form>
+            </div>
+        </div>
 
-    !-- Secțiunea de Prețuri  Stripe Abonamente Pros --
-    section id=pricing class=max-w-5xl mx-auto px-4 py-12
-        div class=text-center mb-10
-            h2 class=text-2xl font-bold text-slate-900Are you a Professional in Miamih2
-            p class=text-slate-500 text-sm mt-1Get instant customer leads sent directly to your phone.p
-        div
-        div class=grid mdgrid-cols-2 gap-6 max-w-3xl mx-auto
-            div class=bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between
-                div
-                    h3 class=font-bold text-lg text-slate-900Starter Proh3
-                    p class=text-slate-500 text-xs mt-1For independent local contractors.p
-                    div class=text-3xl font-black text-slate-900 my-4$49span class=text-sm font-normal text-slate-500mospandiv
-                div
-                button onclick=subscribeStripe('price_starter_id') class=w-full bg-blue-600 hoverbg-blue-700 text-white font-semibold py-2.5 rounded-xl text-sm transition
-                    Choose Starter
-                button
-            div
-            div class=bg-white p-6 rounded-3xl border-2 border-blue-600 shadow-md flex flex-col justify-between
-                div
-                    span class=bg-blue-100 text-blue-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widerMost Popularspan
-                    h3 class=font-bold text-lg text-slate-900 mt-2Growth Agencyh3
-                    p class=text-slate-500 text-xs mt-1For growing teams and local businesses.p
-                    div class=text-3xl font-black text-slate-900 my-4$149span class=text-sm font-normal text-slate-500mospandiv
-                div
-                button onclick=subscribeStripe('price_growth_id') class=w-full bg-blue-600 hoverbg-blue-700 text-white font-semibold py-2.5 rounded-xl text-sm transition
-                    Choose Growth
-                button
-            div
-        div
-    section
+        <!-- Zona de Contractori / Planuri Pro (Dreapta) -->
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
+                <h3 class="text-lg font-bold text-slate-900 mb-4">Active Contractors Directory</h3>
+                <div id="contractors-list" class="space-y-3">
+                    <p class="text-sm text-slate-500">Se încarcă contractorii...</p>
+                </div>
+            </div>
 
-    !-- JavaScript Logică Client --
-    script
-         Funcția de căutare AI
+            <!-- Secțiune Prețuri / Monetizare Pro -->
+            <div id="pricing" class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">Grow Your Business in Miami</h3>
+                <p class="text-sm text-slate-600 mb-6">Choose a plan to list your agency or unlock direct client requests instantly.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="border border-slate-200 p-5 rounded-2xl flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Featured Listing</span>
+                            <h4 class="text-2xl font-black mt-3">$39 <span class="text-sm font-normal text-slate-500">/mo</span></h4>
+                            <p class="text-xs text-slate-600 mt-2">Top placement in your category and guaranteed local visibility.</p>
+                        </div>
+                        <button onclick="checkoutProduct('featured')" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm transition">Select Featured</button>
+                    </div>
+                    <div class="border border-blue-600 bg-blue-50/30 p-5 rounded-2xl flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold uppercase text-white bg-blue-600 px-2.5 py-1 rounded-md">Pro Agency</span>
+                            <h4 class="text-2xl font-black mt-3">$149 <span class="text-sm font-normal text-slate-500">/mo</span></h4>
+                            <p class="text-xs text-slate-600 mt-2">Unlimited lead matches, maximum priority, and direct client routing.</p>
+                        </div>
+                        <button onclick="checkoutProduct('pro')" class="mt-6 w-full bg-slate-900 hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm transition">Select Pro Plan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
+        <p>&copy; 2026 MiamiMarket.ai. All rights reserved across Miami-Dade County.</p>
+    </footer>
+
+    <!-- JavaScript complet -->
+    <script>
         function runAiSearch() {
-            const input = document.getElementById('ai-search-input').value.trim();
-            if (!input) {
-                alert(Please type what you are looking for (e.g., AC repair, plumbing, cleaning).);
-                return;
-            }
-            alert(`AI Concierge Analyzing your request (${input})... Connecting you with the best available professional in Miami!`);
-            const leadForm = document.getElementById('services');
-            if (leadForm) {
-                leadForm.scrollIntoView({ behavior 'smooth' });
+            const val = document.getElementById('ai-search-input').value;
+            if(val) {
+                alert('AI Concierge a analizat cererea: "' + val + '". Te redirecționăm către formular!');
+                document.getElementById('services').scrollIntoView({ behavior: 'smooth' });
             }
         }
 
-         Trimitere Formular Lead-uri către Backend
-        document.getElementById('lead-form').addEventListener('submit', async function(e) {
+        async function submitLead(e) {
             e.preventDefault();
-            const name = document.getElementById('lead-name').value;
-            const contact = document.getElementById('lead-contact').value;
-            const service = document.getElementById('lead-service').value;
+            const service = document.getElementById('service').value;
+            const name = document.getElementById('name').value;
+            const contact = document.getElementById('contact').value;
+            const neighborhood = document.getElementById('neighborhood').value;
+            const description = document.getElementById('description').value;
 
             try {
-                const response = await fetch('apileads', {
-                    method 'POST',
-                    headers { 'Content-Type' 'applicationjson' },
-                    body JSON.stringify({ name, contact, service })
+                const res = await fetch('/api/leads', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service, name, contact, neighborhood, description })
                 });
-                const data = await response.json();
+                const data = await res.json();
                 if(data.success) {
-                    alert(Thank you! Your request has been successfully registered.);
-                    this.reset();
+                    alert('Lead creat cu succes! ID: ' + data.leadId);
+                    document.getElementById('leadForm').reset();
                 } else {
-                    alert(Something went wrong. Please try again.);
+                    alert('Erore la trimitere.');
                 }
-            } catch (err) {
+            } catch(err) {
                 console.error(err);
-                alert(Network error. Make sure your server is running.);
-            }
-        });
-
-         Integrare Plăți Stripe
-        const stripe = Stripe('pk_test_cheia_ta_publica_stripe');  Înlocuiește cu cheia ta publică Stripe
-
-        async function subscribeStripe(priceId) {
-            try {
-                const response = await fetch('create-checkout-session', {
-                    method 'POST',
-                    headers { 'Content-Type' 'applicationjson' },
-                    body JSON.stringify({ priceId })
-                });
-                const session = await response.json();
-                if (session.id) {
-                    return stripe.redirectToCheckout({ sessionId session.id });
-                } else {
-                    alert(Error creating checkout session.);
-                }
-            } catch (err) {
-                console.error(err);
-                alert(Error connecting to payment server.);
+                alert('Erore de rețea.');
             }
         }
-    script
-body
-html
+
+        async function checkoutProduct(productType) {
+            try {
+                const res = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productType })
+                });
+                const data = await res.json();
+                if(data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Erore la generarea sesiunii de plată.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Erore de conexiune.');
+            }
+        }
+
+        // Încărcare constructori la pornire
+        async function loadContractors() {
+            try {
+                const res = await fetch('/api/contractors');
+                const list = await res.json();
+                const container = document.getElementById('contractors-list');
+                if(list.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-slate-500">Nu există firme active momentan. Fii primul!</p>';
+                    return;
+                }
+                container.innerHTML = list.map(c => `
+                    <div class="p-4 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">${c.name}</h4>
+                            <p class="text-xs text-blue-600 font-medium">${c.category} • ${c.neighborhood}</p>
+                            <p class="text-xs text-slate-500 mt-1">${c.description || ''}</p>
+                        </div>
+                        <span class="text-xs font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-md">Active</span>
+                    </div>
+                `).join('');
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        loadContractors();
+    </script>
+</body>
+</html>
