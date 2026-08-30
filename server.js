@@ -179,5 +179,41 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
+// Endpoint-ul Stripe Checkout cerut de butoanele din HTML
+app.post('/create-checkout-session', async (req, res) => {
+    try {
+        const { productType } = req.body;
+        let unitAmount = 3900;
+        let productName = 'MiamiMarket.ai - Featured Listing';
+
+        if (productType === 'pro') {
+            unitAmount = 14900;
+            productName = 'MiamiMarket.ai - Pro Agency Plan';
+        }
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: 'usd',
+                        product_data: { name: productName },
+                        unit_amount: unitAmount,
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `https://homematch-miami.onrender.com/index.html?success=true`,
+            cancel_url: `https://homematch-miami.onrender.com/index.html?canceled=true`,
+        });
+
+        res.json({ id: session.id, url: session.url });
+    } catch (err) {
+        console.error('Erore Stripe:', err);
+        res.status(500).json({ error: 'Erore la generarea sesiunii de plată.' });
+    }
+});
+
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => console.log(`Serverul rulează pe portul ${PORT} 🚀`));
