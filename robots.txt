@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /register.html?*
+
+Sitemap: https://homematch-miami.onrender.com/sitemap.xml

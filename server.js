@@ -10,8 +10,8 @@ app.use(cors());
 
 app.use(express.static(__dirname));
 
-// Conectare la MongoDB Atlas
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://iulianpopa433_db_user:asP2WUlGA60i95AU@cluster0.sfkeudx.mongodb.net/homematch-miami?retryWrites=true&w=majority&appName=Cluster0';
+// Conectare la MongoDB folosind string-ul standard (fără query SRV, pentru a evita orice blocaj DNS)
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://iulianpopa433_db_user:asP2WUlGA60i95AU@cluster0-shard-00-00.sfkeudx.mongodb.net:27017,cluster0-shard-00-01.sfkeudx.mongodb.net:27017,cluster0-shard-00-02.sfkeudx.mongodb.net:27017/homematch-miami?ssl=true&replicaSet=atlas-13o681-shard-0&authSource=admin&retryWrites=true&w=majority';
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log('Conectat la MongoDB cu succes!'))
@@ -43,17 +43,22 @@ const contractorSchema = new mongoose.Schema({
 
 const Contractor = mongoose.model('Contractor', contractorSchema);
 
-// Schema pentru Lead-uri
+// Schema pentru Lead-uri cu stări complete
 const leadSchema = new mongoose.Schema({
     service: String,
     clientName: String,
     contactInfo: String,
     description: String,
     address: String,
-    streetAddress: String,
+    neighborhood: String,
     zip: String,
-    unlocked: { type: Boolean, default: false }
-});
+    status: { 
+        type: String, 
+        enum: ['NEW', 'PAID', 'UNLOCKED', 'CONTACTED', 'CONVERTED'], 
+        default: 'NEW' 
+    },
+    unlockedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Contractor', default: null }
+}, { timestamps: true });
 
 const Lead = mongoose.model('Lead', leadSchema);
 
@@ -72,6 +77,21 @@ function calculateExpirationDate(planType) {
     return date;
 }
 
+// Funcție automată de Business Matching
+async function matchLeadWithContractors(lead) {
+    try {
+        const matchingPros = await Contractor.find({
+            category: lead.service,
+            neighborhood: lead.neighborhood,
+            expiresAt: { $gt: new Date() }
+        });
+        console.log(`[MATCHING] S-au găsit ${matchingPros.length} firme eligibile pentru lead-ul ${lead._id} în ${lead.neighborhood}`);
+        return matchingPros;
+    } catch (err) {
+        console.error('Erore la business matching:', err);
+    }
+}
+
 // Funcție automată: trimite reminder și șterge firmele expirate
 async function checkSubscriptionsAndNotify() {
     try {
@@ -87,9 +107,9 @@ async function checkSubscriptionsAndNotify() {
         for (const pro of expiringSoon) {
             if (pro.email) {
                 await transporter.sendMail({
-                    from: '"HomeMatch Miami" <noreply@homematchmiami.com>',
+                    from: '"MiamiMarket.ai" <noreply@miamimarket.ai>',
                     to: pro.email,
-                    subject: 'Abonamentul tău HomeMatch Miami expiră în curând!',
+                    subject: 'Abonamentul tău MiamiMarket.ai expiră în curând!',
                     text: `Salut ${pro.name}, abonamentul tău pentru categoria ${pro.category} expiră pe ${pro.expiresAt.toLocaleDateString()}. Reînnoiește-l pentru a nu pierde vizibilitatea în Miami!`
                 });
                 pro.reminderSent = true;
@@ -101,9 +121,9 @@ async function checkSubscriptionsAndNotify() {
         for (const pro of expiredPros) {
             if (pro.email) {
                 await transporter.sendMail({
-                    from: '"HomeMatch Miami" <noreply@homematchmiami.com>',
+                    from: '"MiamiMarket.ai" <noreply@miamimarket.ai>',
                     to: pro.email,
-                    subject: 'Abonamentul tău HomeMatch Miami a expirat',
+                    subject: 'Abonamentul tău MiamiMarket.ai a expirat',
                     text: `Salut ${pro.name}, perioada plătită a expirat și reclama ta a fost eliminată din director.`
                 });
             }
@@ -145,7 +165,7 @@ app.post('/api/create-subscription-session', async (req, res) => {
                     price_data: {
                         currency: 'usd',
                         product_data: {
-                            name: `HomeMatch Miami - Plan ${plan}`,
+                            name: `MiamiMarket.ai - Plan ${plan}`,
                             description: `${category} listing for ${name} in ${neighborhood}`,
                         },
                         unit_amount: amount * 100,
@@ -211,11 +231,29 @@ app.get('/api/leads', async (req, res) => {
 
 app.post('/api/leads', async (req, res) => {
     try {
-        const newLead = new Lead(req.body);
+        const { service, name, contact, description, address, neighborhood, zip } = req.body;
+        const newLead = new Lead({
+            service: service || 'General',
+            clientName: name,
+            contactInfo: contact,
+            description: description || '',
+            address: address || 'Miami, FL',
+            neighborhood: neighborhood || 'Brickell',
+            zip: zip || '',
+            status: 'NEW'
+        });
+        
         await newLead.save();
-        res.status(201).json(newLead);
+        matchLeadWithContractors(newLead);
+
+        res.status(201).json({ 
+            success: true, 
+            leadId: newLead._id, 
+            message: 'Lead creat cu succes.' 
+        });
     } catch (err) {
-        res.status(500).json({ error: 'Error creating lead' });
+        console.error('Erore salvare lead:', err);
+        res.status(500).json({ success: false, error: 'Error creating lead' });
     }
 });
 
@@ -228,14 +266,37 @@ app.delete('/api/leads/:id', async (req, res) => {
     }
 });
 
-// Endpoint Stripe pentru deblocarea unui lead contra sumei de $15
-app.post('/api/create-checkout-session', async (req, res) => {
+app.post('/create-checkout-session', async (req, res) => {
     try {
-        const { leadId } = req.body;
-        const lead = await Lead.findById(leadId);
-        
-        if (!lead) {
-            return res.status(404).json({ error: 'Lead-ul nu a fost găsit.' });
+        const { leadId, productType } = req.body;
+        let unitAmount = 0;
+        let productName = '';
+        let productDescription = '';
+        let metadata = {};
+
+        if (leadId) {
+            const lead = await Lead.findById(leadId);
+            if (!lead) {
+                return res.status(404).json({ error: 'Lead-ul nu a fost găsit.' });
+            }
+
+            unitAmount = 1500;
+            productName = `MiamiMarket.ai - Unlock Lead (${lead.service})`;
+            productDescription = `Deblocare adresă și contact pentru cererea din ${lead.neighborhood || lead.address}`;
+            metadata = { leadId: lead._id.toString(), type: 'lead_unlock' };
+        } 
+        else if (productType === 'featured') {
+            unitAmount = 3900;
+            productName = 'MiamiMarket.ai - Featured Listing';
+            productDescription = 'Vizibilitate sporită în directorul local.';
+            metadata = { type: 'subscription_featured' };
+        } else if (productType === 'pro') {
+            unitAmount = 14900;
+            productName = 'MiamiMarket.ai - Pro Agency Plan';
+            productDescription = 'Lead-uri constante și prioritate maximă.';
+            metadata = { type: 'subscription_pro' };
+        } else {
+            return res.status(400).json({ error: 'Parametri insuficienți sau tip de produs invalid.' });
         }
 
         const session = await stripe.checkout.sessions.create({
@@ -245,37 +306,40 @@ app.post('/api/create-checkout-session', async (req, res) => {
                     price_data: {
                         currency: 'usd',
                         product_data: {
-                            name: `HomeMatch Miami - Unlock Lead (${lead.service})`,
-                            description: `Deblocare adresă și contact pentru cererea din ${lead.address}`,
+                            name: productName,
+                            description: productDescription,
                         },
-                        unit_amount: 1500, // $15.00
+                        unit_amount: unitAmount,
                     },
                     quantity: 1,
                 },
             ],
             mode: 'payment',
-            success_url: `https://homematch-miami.onrender.com/index.html?success=true&leadId=${leadId}`,
+            success_url: `https://homematch-miami.onrender.com/index.html?success=true${leadId ? '&leadId=' + leadId : ''}`,
             cancel_url: `https://homematch-miami.onrender.com/index.html?canceled=true`,
+            metadata: metadata
         });
 
-        res.json({ url: session.url });
+        res.json({ id: session.id, url: session.url });
     } catch (err) {
-        console.error('Erore Stripe Checkout Lead:', err);
+        console.error('Erore Stripe Checkout:', err);
         res.status(500).json({ error: 'Erore la generarea sesiunii de plată.' });
     }
 });
 
-// Endpoint pentru deblocarea efectivă a datelor după plata Stripe
 app.post('/api/leads/:id/unlock', async (req, res) => {
     try {
-        const lead = await Lead.findByIdAndUpdate(req.params.id, { unlocked: true }, { new: true });
+        const lead = await Lead.findByIdAndUpdate(
+            req.params.id, 
+            { status: 'UNLOCKED', unlocked: true }, 
+            { new: true }
+        );
         res.json({ success: true, lead });
     } catch (err) {
         res.status(500).json({ error: 'Erore la deblocarea lead-ului' });
     }
 });
 
-// Endpoint pentru contorul de vizite
 app.get('/api/stats', async (req, res) => {
     try {
         let stats = await Stats.findOne();
@@ -293,4 +357,4 @@ app.get('/api/stats', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => console.log(`Serverul rulează pe portul ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Serverul rulează pe portul ${PORT} 🚀`));
