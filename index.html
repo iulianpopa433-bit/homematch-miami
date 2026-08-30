@@ -190,8 +190,14 @@
                 const data = await res.json();
                 if(data.success) {
                     alert('Lead creat cu succes! ID: ' + data.leadId);
+                    
+                    // Salvăm ID-ul în localStorage ca să știm că acest browser deține cererea
+                    let myLeads = JSON.parse(localStorage.getItem('my_leads') || '[]');
+                    myLeads.push(data.leadId);
+                    localStorage.setItem('my_leads', JSON.stringify(myLeads));
+
                     document.getElementById('leadForm').reset();
-                    loadLiveLeads(); // Reîncărcăm lista de cereri instant
+                    loadLiveLeads(); 
                 } else {
                     alert('Erore la trimitere.');
                 }
@@ -220,7 +226,6 @@
             }
         }
 
-        // Funcție de deblocare lead unicat pentru $15
         async function unlockLead(leadId) {
             try {
                 const res = await fetch('/create-checkout-session', {
@@ -240,7 +245,31 @@
             }
         }
 
-        // Încărcare cereri live (lead-uri)
+        // Funcție prin care doar autorul poate șterge cererea
+        async function deleteMyLead(leadId) {
+            if(!confirm('Sigur vrei să ștergi această cerere?')) return;
+            try {
+                const res = await fetch(`/api/leads/${leadId}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if(data.success) {
+                    // Scoatem ID-ul și din localStorage
+                    let myLeads = JSON.parse(localStorage.getItem('my_leads') || '[]');
+                    myLeads = myLeads.filter(id => id !== leadId);
+                    localStorage.setItem('my_leads', JSON.stringify(myLeads));
+
+                    alert('Cererea a fost ștersă cu succes.');
+                    loadLiveLeads();
+                } else {
+                    alert('Nu s-a putut șterge cererea.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Erore de rețea.');
+            }
+        }
+
         async function loadLiveLeads() {
             try {
                 const res = await fetch('/api/leads');
@@ -253,28 +282,43 @@
                     return;
                 }
 
-                container.innerHTML = leads.map(lead => `
-                    <div class="p-4 border border-slate-100 rounded-xl bg-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">${lead.service}</span>
-                                <span class="text-xs text-slate-500 font-medium">${lead.neighborhood || 'Miami'}</span>
+                // Luăm lista ID-urilor salvate în browserul acestui client
+                const myLeads = JSON.parse(localStorage.getItem('my_leads') || '[]');
+
+                container.innerHTML = leads.map(lead => {
+                    // Verificăm dacă lead-ul curent aparține acestui vizitator
+                    const isOwner = myLeads.includes(lead._id);
+
+                    return `
+                        <div class="p-4 border border-slate-100 rounded-xl bg-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">${lead.service}</span>
+                                    <span class="text-xs text-slate-500 font-medium">${lead.neighborhood || 'Miami'}</span>
+                                    ${isOwner ? '<span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">Cererea Ta</span>' : ''}
+                                </div>
+                                <h4 class="font-bold text-sm text-slate-900 mt-2">Client: ${lead.clientName}</h4>
+                                <p class="text-xs text-slate-600 mt-1">${lead.description || 'Fără descriere.'}</p>
+                                <p class="text-xs font-semibold text-red-600 mt-2">${lead.contactInfo}</p>
                             </div>
-                            <h4 class="font-bold text-sm text-slate-900 mt-2">Client: ${lead.clientName}</h4>
-                            <p class="text-xs text-slate-600 mt-1">${lead.description || 'Fără descriere.'}</p>
-                            <p class="text-xs font-semibold text-red-600 mt-2">${lead.contactInfo}</p>
+                            <div class="flex items-center gap-2">
+                                ${isOwner ? `
+                                    <button onclick="deleteMyLead('${lead._id}')" class="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold px-3 py-2.5 rounded-xl transition whitespace-nowrap">
+                                        Delete
+                                    </button>
+                                ` : ''}
+                                <button onclick="unlockLead('${lead._id}')" class="bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition whitespace-nowrap shadow-sm">
+                                    Unlock for $15
+                                </button>
+                            </div>
                         </div>
-                        <button onclick="unlockLead('${lead._id}')" class="bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition whitespace-nowrap shadow-sm">
-                            Unlock for $15
-                        </button>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch(err) {
                 console.error('Erore la încărcarea lead-urilor:', err);
             }
         }
 
-        // Încărcare constructori la pornire
         async function loadContractors() {
             try {
                 const res = await fetch('/api/contractors');
@@ -299,7 +343,6 @@
             }
         }
 
-        // Inițializare la încărcarea paginii
         loadLiveLeads();
         loadContractors();
     </script>

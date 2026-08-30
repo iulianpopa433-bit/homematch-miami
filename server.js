@@ -136,6 +136,16 @@ app.post('/api/leads', async (req, res) => {
     }
 });
 
+// Ruta pentru ștergerea unui lead de către clientul care l-a creat
+app.delete('/api/leads/:id', async (req, res) => {
+    try {
+        await Lead.findByIdAndDelete(req.params.id);
+        res.json({ success: true, message: 'Cererea a fost ștearsă cu succes.' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Erore la ștergerea lead-ului' });
+    }
+});
+
 app.get('/api/stats', async (req, res) => {
     try {
         let stats = await Stats.findOne();
