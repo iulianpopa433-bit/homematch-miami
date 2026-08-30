@@ -20,6 +20,7 @@
             </div>
             <nav class="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
                 <a href="#services" class="hover:text-blue-600 transition">Services</a>
+                <a href="#live-requests" class="hover:text-blue-600 transition">Client Requests</a>
                 <a href="#coverage" class="hover:text-blue-600 transition">Neighborhoods</a>
                 <a href="#deals" class="hover:text-blue-600 transition">Miami Deals</a>
                 <a href="#pricing" class="hover:text-blue-600 transition">Pro Plans</a>
@@ -111,8 +112,18 @@
             </div>
         </div>
 
-        <!-- Zona de Contractori / Planuri Pro (Dreapta) -->
+        <!-- Zona de Contractori, Cereri Live & Planuri Pro (Dreapta) -->
         <div class="lg:col-span-2 space-y-8">
+            
+            <!-- Cereri Live Clienți (Aici se văd cererile cu contact ascuns și deblocare $15) -->
+            <div id="live-requests" class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
+                <h3 class="text-lg font-bold text-slate-900 mb-2">🔥 Active Client Requests</h3>
+                <p class="text-sm text-slate-600 mb-4">Contractors can unlock direct contact info for $15 or via Pro Plan.</p>
+                <div id="leads-container" class="space-y-4">
+                    <p class="text-sm text-slate-500">Se încarcă cererile clienților...</p>
+                </div>
+            </div>
+
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
                 <h3 class="text-lg font-bold text-slate-900 mb-4">Active Contractors Directory</h3>
                 <div id="contractors-list" class="space-y-3">
@@ -180,6 +191,7 @@
                 if(data.success) {
                     alert('Lead creat cu succes! ID: ' + data.leadId);
                     document.getElementById('leadForm').reset();
+                    loadLiveLeads(); // Reîncărcăm lista de cereri instant
                 } else {
                     alert('Erore la trimitere.');
                 }
@@ -208,6 +220,60 @@
             }
         }
 
+        // Funcție de deblocare lead unicat pentru $15
+        async function unlockLead(leadId) {
+            try {
+                const res = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productType: 'unlock_lead', leadId: leadId })
+                });
+                const data = await res.json();
+                if(data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Erore la inițierea plății pentru deblocare.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Erore de conexiune.');
+            }
+        }
+
+        // Încărcare cereri live (lead-uri)
+        async function loadLiveLeads() {
+            try {
+                const res = await fetch('/api/leads');
+                const leads = await res.json();
+                const container = document.getElementById('leads-container');
+                if(!container) return;
+
+                if(leads.length === 0) {
+                    container.innerHTML = '<p class="text-sm text-slate-500">Nu există cereri active momentan.</p>';
+                    return;
+                }
+
+                container.innerHTML = leads.map(lead => `
+                    <div class="p-4 border border-slate-100 rounded-xl bg-slate-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">${lead.service}</span>
+                                <span class="text-xs text-slate-500 font-medium">${lead.neighborhood || 'Miami'}</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-slate-900 mt-2">Client: ${lead.clientName}</h4>
+                            <p class="text-xs text-slate-600 mt-1">${lead.description || 'Fără descriere.'}</p>
+                            <p class="text-xs font-semibold text-red-600 mt-2">${lead.contactInfo}</p>
+                        </div>
+                        <button onclick="unlockLead('${lead._id}')" class="bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition whitespace-nowrap shadow-sm">
+                            Unlock for $15
+                        </button>
+                    </div>
+                `).join('');
+            } catch(err) {
+                console.error('Erore la încărcarea lead-urilor:', err);
+            }
+        }
+
         // Încărcare constructori la pornire
         async function loadContractors() {
             try {
@@ -233,6 +299,8 @@
             }
         }
 
+        // Inițializare la încărcarea paginii
+        loadLiveLeads();
         loadContractors();
     </script>
 </body>
