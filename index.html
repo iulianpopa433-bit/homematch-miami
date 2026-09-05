@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HomeMatch - Miami</title>
+    <title>HomeMatch - Miami Local Services & Pros</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; }
         header { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
         nav a { margin: 0 15px; text-decoration: none; color: #333; font-weight: 500; }
         .btn-join { background-color: #0056b3; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: flex; gap: 30px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: flex; gap: 30px; flex-direction: column; }
+        .main-grid { display: flex; gap: 30px; }
         .form-section { flex: 1; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .leads-section { flex: 2; }
         .form-group { margin-bottom: 15px; }
@@ -22,12 +23,24 @@
         .btn-delete { background-color: #fed7d7; color: #9b2c2c; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 10px; }
         .btn-unlock { background-color: #1a202c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .locked-info { color: #c53030; font-size: 13px; margin-top: 10px; }
+        
+        /* Zona de Reclame Automate (Google AdSense / Banner slot) */
+        .ad-slot {
+            background: #edf2f7;
+            border: 2px dashed #cbd5e0;
+            color: #718096;
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h2>HomeMatch</h2>
+        <h2>HomeMatch Miami</h2>
         <nav>
             <a href="#">Services</a>
             <a href="#">Client Requests</a>
@@ -39,44 +52,64 @@
     </header>
 
     <div class="container">
-        <!-- Formular Client -->
-        <div class="form-section">
-            <h3>Request a Local Pro</h3>
-            <form id="leadForm">
-                <div class="form-group">
-                    <label>Service Needed</label>
-                    <select id="service" required>
-                        <option value="Plumbing">Plumbing</option>
-                        <option value="Electrical">Electrical</option>
-                        <option value="Cleaning">Cleaning</option>
-                        <option value="Legal">Legal</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Neighborhood / Location</label>
-                    <input type="text" id="neighborhood" placeholder="e.g. Brickell, Miami" required>
-                </div>
-                <div class="form-group">
-                    <label>Your Name</label>
-                    <input type="text" id="clientName" placeholder="Full Name" required>
-                </div>
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="text" id="phone" placeholder="Phone Number" required>
-                </div>
-                <div class="form-group">
-                    <label>Details / Description</label>
-                    <textarea id="description" rows="3" placeholder="Describe what you need..." required></textarea>
-                </div>
-                <button type="submit" class="btn-submit">Submit Request</button>
-            </form>
+        <!-- SPAȚIU PUBLICITAR AUTOMAT (SUS - Leaderboard Ad Slot) -->
+        <div class="ad-slot">
+            <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px;">Advertisement</span>
+            <!-- Aici vei introduce codul script de la Google AdSense sau altă rețea -->
+            [ Google AdSense / Automated Ad Banner Space (728x90) ]
         </div>
 
-        <!-- Lista de Lead-uri Live -->
-        <div class="leads-section">
-            <h3>Live Client Requests</h3>
-            <div id="leadsList">
-                <p>Loading requests...</p>
+        <div class="main-grid">
+            <!-- Formular Client -->
+            <div class="form-section">
+                <h3>Request a Local Pro</h3>
+                <form id="leadForm">
+                    <div class="form-group">
+                        <label>Service Needed</label>
+                        <select id="service" required>
+                            <option value="AC & HVAC Repair">❄️ AC & HVAC Repair (Top Miami Demand)</option>
+                            <option value="Plumbing">🚰 Plumbing & Water Leaks</option>
+                            <option value="Electrical">⚡ Electrical Services</option>
+                            <option value="Roofing & Storm Prep">🏠 Roofing & Storm Prep</option>
+                            <option value="Pool Maintenance">🏊‍♂️ Pool Maintenance & Cleaning</option>
+                            <option value="House Cleaning">✨ House Cleaning & Deep Clean</option>
+                            <option value="Handyman & Carpentry">🛠️ Handyman & Repairs</option>
+                            <option value="Landscaping & Lawn">🌴 Landscaping & Lawn Care</option>
+                            <option value="Legal & Real Estate">⚖️ Legal & Real Estate Services</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Neighborhood / Location</label>
+                        <input type="text" id="neighborhood" placeholder="e.g. Brickell, Miami Beach, Coral Gables" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" id="clientName" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="phone" placeholder="Phone Number" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Details / Description</label>
+                        <textarea id="description" rows="3" placeholder="Describe what you need..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">Submit Request (Free)</button>
+                </form>
+            </div>
+
+            <!-- Lista de Lead-uri Live -->
+            <div class="leads-section">
+                <h3>Live Client Requests</h3>
+                <div id="leadsList">
+                    <p>Loading requests...</p>
+                </div>
+
+                <!-- SPAȚIU PUBLICITAR AUTOMAT (ÎN LISTĂ - In-Feed Ad Slot) -->
+                <div class="ad-slot" style="margin-top: 20px;">
+                    <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px;">Sponsored Ad</span>
+                    [ Automated Responsive Ad Banner ]
+                </div>
             </div>
         </div>
     </div>
@@ -84,7 +117,6 @@
     <script>
         const API_URL = ""; 
 
-        // Gestionare unică a ID-urilor proprii în localStorage
         function getMyLeadIds() {
             let ids = localStorage.getItem('my_leads');
             return ids ? JSON.parse(ids) : [];
@@ -106,7 +138,7 @@
                 list.innerHTML = '';
 
                 if (leads.length === 0) {
-                    list.innerHTML = '<p>No requests found.</p>';
+                    list.innerHTML = '<p>No requests found right now. Be the first to post!</p>';
                     return;
                 }
 
@@ -117,7 +149,7 @@
                     card.className = 'lead-card';
                     const isMyLead = myLeads.includes(lead._id);
 
-                    let actionButtons = `<button class="btn-unlock" onclick="unlockLead('${lead._id}')">Unlock for $15</button>`;
+                    let actionButtons = `<button class="btn-unlock" onclick="unlockLead('${lead._id}')">Unlock Contact for $9</button>`;
                     let badgeHtml = '';
 
                     if (isMyLead) {
@@ -131,7 +163,7 @@
                         ${badgeHtml}
                         <p style="margin-top: 10px;"><strong>Client:</strong> ${lead.clientName}</p>
                         <p>${lead.description}</p>
-                        <p class="locked-info">🔒 Ascuns (Necesită Pro Plan sau $15 deblocare)</p>
+                        <p class="locked-info">🔒 Contact ascuns (Deblocare rapidă promoțională: $9)</p>
                         <div style="margin-top: 15px;">
                             ${actionButtons}
                         </div>
@@ -180,7 +212,6 @@
                     method: 'DELETE'
                 });
                 if (response.ok) {
-                    // Șterge și din localStorage local
                     let myLeads = getMyLeadIds().filter(leadId => leadId !== id);
                     localStorage.setItem('my_leads', JSON.stringify(myLeads));
                     fetchLeads();
@@ -193,9 +224,7 @@
         }
 
         function unlockLead(id) {
-            if (confirm('Simulare plată de $15: După plată, acest lead va fi marcat ca deblocat și ascuns pentru ceilalți meseriași.')) {
-                // Aici poți adăuga în viitor apelul către Stripe. 
-                // Pentru moment, o simulăm prin ștergerea lead-ului din listă după plata reușită:
+            if (confirm('Deblocare lead exclusiv pentru $9: După confirmare, datele de contact devin vizibile și cererea se închide pentru ceilalți.')) {
                 deleteLead(id);
             }
         }
