@@ -31,7 +31,7 @@
         </div>
     </header>
 
-    <!-- BANNER AFILIERE SUS: Leaderboard 728x90 (Standard IAB) -->
+    <!-- BANNER AFILIERE SUS: Leaderboard 728x90 -->
     <div class="max-w-7xl mx-auto px-4 pt-6 flex justify-center">
         <div style="width: 728px; height: 90px;" class="bg-white border border-dashed border-slate-300 rounded-xl flex items-center justify-center text-slate-400 text-xs font-medium shadow-sm">
             <span>Affiliate Banner Leaderboard (728x90) - Partner Sponsor</span>
@@ -84,7 +84,7 @@
     <!-- Secțiunea principală: Formular Lead-uri & Listări -->
     <main class="max-w-7xl mx-auto px-4 pb-20 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Formular Lead-uri (Stânga / Principal) + Banner Afiliere Lateral -->
+        <!-- Formular Lead-uri cu Categorii extinse + Banner Lateral -->
         <div class="lg:col-span-1 space-y-6">
             <div id="services" class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200 sticky top-24">
                 <h2 class="text-xl font-bold text-slate-900 mb-6">Request a Local Pro</h2>
@@ -95,6 +95,10 @@
                             <option value="Plumbing">Plumbing / Emergency Repair</option>
                             <option value="AC Repair">AC & HVAC Repair</option>
                             <option value="Electrical">Electrician</option>
+                            <option value="Roofing">Roofing Services</option>
+                            <option value="Pest Control">Pest Control & Extermination</option>
+                            <option value="Landscaping">Landscaping & Lawn Care</option>
+                            <option value="Handyman">General Handyman</option>
                             <option value="Legal">Lawyer / Legal Services</option>
                         </select>
                     </div>
@@ -118,7 +122,7 @@
                 </form>
             </div>
 
-            <!-- BANNER AFILIERE LATERAL: Medium Rectangle 300x250 (Standard IAB) -->
+            <!-- BANNER AFILIERE LATERAL: Medium Rectangle 300x250 -->
             <div class="flex justify-center">
                 <div style="width: 300px; height: 250px;" class="bg-white border border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-400 text-xs font-medium p-4 text-center shadow-sm">
                     <span>Affiliate Banner Box (300x250)</span>
@@ -127,7 +131,7 @@
             </div>
         </div>
 
-        <!-- Zona de Contractori, Cereri Live & Planuri Pro (Dreapta) -->
+        <!-- Zona de Contractori, Cereri Live & Secțiune Banner Afiliat în loc de planuri -->
         <div class="lg:col-span-2 space-y-8">
             
             <!-- Cereri Live Clienți -->
@@ -146,26 +150,17 @@
                 </div>
             </div>
 
-            <!-- Secțiune Prețuri / Monetizare Pro -->
-            <div id="pricing" class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
-                <h3 class="text-lg font-bold text-slate-900 mb-2">Grow Your Business in Miami</h3>
-                <p class="text-sm text-slate-600 mb-6">Choose a plan to list your agency or unlock direct client requests instantly.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="border border-slate-200 p-5 rounded-2xl flex flex-col justify-between">
-                        <div>
-                            <span class="text-xs font-bold uppercase text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Featured Listing</span>
-                            <h4 class="text-2xl font-black mt-3">$39 <span class="text-sm font-normal text-slate-500">/mo</span></h4>
-                            <p class="text-xs text-slate-600 mt-2">Top placement in your category and guaranteed local visibility.</p>
-                        </div>
-                        <button onclick="checkoutProduct('featured')" class="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm transition">Select Featured</button>
-                    </div>
-                    <div class="border border-blue-600 bg-blue-50/30 p-5 rounded-2xl flex flex-col justify-between">
-                        <div>
-                            <span class="text-xs font-bold uppercase text-white bg-blue-600 px-2.5 py-1 rounded-md">Pro Agency</span>
-                            <h4 class="text-2xl font-black mt-3">$149 <span class="text-sm font-normal text-slate-500">/mo</span></h4>
-                            <p class="text-xs text-slate-600 mt-2">Unlimited lead matches, maximum priority, and direct client routing.</p>
-                        </div>
-                        <button onclick="checkoutProduct('pro')" class="mt-6 w-full bg-slate-900 hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm transition">Select Pro Plan</button>
+            <!-- SECȚIUNE ÎNLOCUITĂ: Banner de Afiliat mare în loc de casetele de prețuri -->
+            <div id="pricing" class="bg-white p-8 rounded-3xl shadow-lg border border-slate-200 text-center">
+                <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-3">Partner Sponsor</span>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Advertise Your Business Here</h3>
+                <p class="text-sm text-slate-600 mb-6 max-w-lg mx-auto">Get exclusive visibility in front of thousands of homeowners looking for local services in Miami-Dade County.</p>
+                
+                <!-- Dimensiune banner mare integrat (ex: Leaderboard 728x90 sau Billboard 970x250) -->
+                <div class="mx-auto flex justify-center">
+                    <div style="width: 100%; max-width: 728px; height: 90px;" class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 shadow-inner">
+                        <span>Advertise Your Business Here</span>
+                        <span class="text-slate-400 font-normal mt-1">Recommended Banner Size: Leaderboard (728x90 px) or Full Banner (468x60 px)</span>
                     </div>
                 </div>
             </div>
@@ -218,25 +213,6 @@
             } catch(err) {
                 console.error(err);
                 alert('Network error.');
-            }
-        }
-
-        async function checkoutProduct(productType) {
-            try {
-                const res = await fetch('/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productType })
-                });
-                const data = await res.json();
-                if(data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert('Error generating payment session.');
-                }
-            } catch(err) {
-                console.error(err);
-                alert('Connection error.');
             }
         }
 
