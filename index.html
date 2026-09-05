@@ -120,14 +120,14 @@
                 <h3 class="text-lg font-bold text-slate-900 mb-2">🔥 Active Client Requests</h3>
                 <p class="text-sm text-slate-600 mb-4">Contractors can unlock direct contact info for $15 or via Pro Plan.</p>
                 <div id="leads-container" class="space-y-4">
-                    <p class="text-sm text-slate-500">Se încarcă cererile clienților...</p>
+                    <p class="text-sm text-slate-500">Loading client requests...</p>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200">
                 <h3 class="text-lg font-bold text-slate-900 mb-4">Active Contractors Directory</h3>
                 <div id="contractors-list" class="space-y-3">
-                    <p class="text-sm text-slate-500">Se încarcă contractorii...</p>
+                    <p class="text-sm text-slate-500">Loading contractors...</p>
                 </div>
             </div>
 
@@ -168,7 +168,7 @@
         function runAiSearch() {
             const val = document.getElementById('ai-search-input').value;
             if(val) {
-                alert('AI Concierge a analizat cererea: "' + val + '". Te redirecționăm către formular!');
+                alert('AI Concierge analyzed the request: "' + val + '". Redirecting to form!');
                 document.getElementById('services').scrollIntoView({ behavior: 'smooth' });
             }
         }
@@ -189,9 +189,8 @@
                 });
                 const data = await res.json();
                 if(data.success) {
-                    alert('Lead creat cu succes! ID: ' + data.leadId);
+                    alert('Lead created successfully! ID: ' + data.leadId);
                     
-                    // Salvăm ID-ul în localStorage ca să știm că acest browser deține cererea
                     let myLeads = JSON.parse(localStorage.getItem('my_leads') || '[]');
                     myLeads.push(data.leadId);
                     localStorage.setItem('my_leads', JSON.stringify(myLeads));
@@ -199,11 +198,11 @@
                     document.getElementById('leadForm').reset();
                     loadLiveLeads(); 
                 } else {
-                    alert('Erore la trimitere.');
+                    alert('Error on submission.');
                 }
             } catch(err) {
                 console.error(err);
-                alert('Erore de rețea.');
+                alert('Network error.');
             }
         }
 
@@ -218,11 +217,11 @@
                 if(data.url) {
                     window.location.href = data.url;
                 } else {
-                    alert('Erore la generarea sesiunii de plată.');
+                    alert('Error generating payment session.');
                 }
             } catch(err) {
                 console.error(err);
-                alert('Erore de conexiune.');
+                alert('Connection error.');
             }
         }
 
@@ -237,36 +236,34 @@
                 if(data.url) {
                     window.location.href = data.url;
                 } else {
-                    alert('Erore la inițierea plății pentru deblocare.');
+                    alert('Error initiating payment for unlock.');
                 }
             } catch(err) {
                 console.error(err);
-                alert('Erore de conexiune.');
+                alert('Connection error.');
             }
         }
 
-        // Funcție prin care doar autorul poate șterge cererea
         async function deleteMyLead(leadId) {
-            if(!confirm('Sigur vrei să ștergi această cerere?')) return;
+            if(!confirm('Are you sure you want to delete this request?')) return;
             try {
                 const res = await fetch(`/api/leads/${leadId}`, {
                     method: 'DELETE'
                 });
                 const data = await res.json();
                 if(data.success) {
-                    // Scoatem ID-ul și din localStorage
                     let myLeads = JSON.parse(localStorage.getItem('my_leads') || '[]');
                     myLeads = myLeads.filter(id => id !== leadId);
                     localStorage.setItem('my_leads', JSON.stringify(myLeads));
 
-                    alert('Cererea a fost ștersă cu succes.');
+                    alert('Request successfully deleted.');
                     loadLiveLeads();
                 } else {
-                    alert('Nu s-a putut șterge cererea.');
+                    alert('Could not delete request.');
                 }
             } catch(err) {
                 console.error(err);
-                alert('Erore de rețea.');
+                alert('Network error.');
             }
         }
 
@@ -278,15 +275,13 @@
                 if(!container) return;
 
                 if(leads.length === 0) {
-                    container.innerHTML = '<p class="text-sm text-slate-500">Nu există cereri active momentan.</p>';
+                    container.innerHTML = '<p class="text-sm text-slate-500">No active requests at the moment.</p>';
                     return;
                 }
 
-                // Luăm lista ID-urilor salvate în browserul acestui client
                 const myLeads = JSON.parse(localStorage.getItem('my_leads') || '[]');
 
                 container.innerHTML = leads.map(lead => {
-                    // Verificăm dacă lead-ul curent aparține acestui vizitator
                     const isOwner = myLeads.includes(lead._id);
 
                     return `
@@ -295,10 +290,10 @@
                                 <div class="flex items-center gap-2">
                                     <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">${lead.service}</span>
                                     <span class="text-xs text-slate-500 font-medium">${lead.neighborhood || 'Miami'}</span>
-                                    ${isOwner ? '<span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">Cererea Ta</span>' : ''}
+                                    ${isOwner ? '<span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">Your Request</span>' : ''}
                                 </div>
                                 <h4 class="font-bold text-sm text-slate-900 mt-2">Client: ${lead.clientName}</h4>
-                                <p class="text-xs text-slate-600 mt-1">${lead.description || 'Fără descriere.'}</p>
+                                <p class="text-xs text-slate-600 mt-1">${lead.description || 'No description.'}</p>
                                 <p class="text-xs font-semibold text-red-600 mt-2">${lead.contactInfo}</p>
                             </div>
                             <div class="flex items-center gap-2">
@@ -315,7 +310,7 @@
                     `;
                 }).join('');
             } catch(err) {
-                console.error('Erore la încărcarea lead-urilor:', err);
+                console.error('Error loading leads:', err);
             }
         }
 
@@ -325,7 +320,7 @@
                 const list = await res.json();
                 const container = document.getElementById('contractors-list');
                 if(list.length === 0) {
-                    container.innerHTML = '<p class="text-sm text-slate-500">Nu există firme active momentan. Fii primul!</p>';
+                    container.innerHTML = '<p class="text-sm text-slate-500">No active companies at the moment. Be the first!</p>';
                     return;
                 }
                 container.innerHTML = list.map(c => `
