@@ -19,10 +19,6 @@ app.get('/', (req, res) => {
 // Conectare la MongoDB
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://iulianpopa433_db_user:asP2WUlGA60i95AU@cluster0-shard-00-00.sfkeudx.mongodb.net:27017,cluster0-shard-00-01.sfkeudx.mongodb.net:27017,cluster0-shard-00-02.sfkeudx.mongodb.net:27017/homematch-miami?ssl=true&replicaSet=atlas-13o681-shard-0&authSource=admin&retryWrites=true&w=majority';
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('Conectat la MongoDB cu succes!'))
-    .catch(err => console.error('Erore la conectarea MongoDB:', err));
-
 // Schema pentru Contractor / Firme
 const contractorSchema = new mongoose.Schema({
     name: String,
@@ -42,7 +38,7 @@ const Contractor = mongoose.model('Contractor', contractorSchema);
 const leadSchema = new mongoose.Schema({
     service: String,
     clientName: String,
-    contactInfo: String, // Telefon/Email ascuns până la plată/abonament
+    contactInfo: String, 
     description: String,
     address: String,
     neighborhood: String,
@@ -55,6 +51,17 @@ const Lead = mongoose.model('Lead', leadSchema);
 // Schema pentru Contor Vizite
 const statsSchema = new mongoose.Schema({ pageViews: { type: Number, default: 1240 } });
 const Stats = mongoose.model('Stats', statsSchema);
+
+// Conectare și curățare automată a lead-urilor vechi de probă la pornire
+mongoose.connect(MONGO_URI)
+    .then(async () => {
+        console.log('Conectat la MongoDB cu succes!');
+        
+        // Șterge automat toate cererile/lead-urile vechi pentru a face curat pe site
+        await Lead.deleteMany({});
+        console.log('TOATE LEAD-URILE VECHI AU FOST ȘTERSE DEFINITIV!');
+    })
+    .catch(err => console.error('Erore la conectarea MongoDB:', err));
 
 // Funcție calcul expirare abonament
 function calculateExpirationDate(planType) {
@@ -96,15 +103,13 @@ app.post('/api/save-contractor-subscription', async (req, res) => {
     }
 });
 
-// Preluare lead-uri pentru site (ascundem contactInfo dacă vizitatorul nu este logat/abonat)
 app.get('/api/leads', async (req, res) => {
     try {
         const leads = await Lead.find().sort({ createdAt: -1 });
-        // Ascundem datele de contact directe pentru afișarea publică
         const sanitizedLeads = leads.map(l => ({
             _id: l._id,
             service: l.service,
-            clientName: l.clientName.charAt(0) + '***', // Ex: I***
+            clientName: l.clientName ? (l.clientName.charAt(0) + '***') : 'C***',
             contactInfo: '🔒 Ascuns (Necesită Pro Plan sau $15 deblocare)',
             description: l.description,
             neighborhood: l.neighborhood,
@@ -136,7 +141,6 @@ app.post('/api/leads', async (req, res) => {
     }
 });
 
-// Ruta pentru ștergerea unui lead de către clientul care l-a creat
 app.delete('/api/leads/:id', async (req, res) => {
     try {
         await Lead.findByIdAndDelete(req.params.id);
@@ -162,7 +166,6 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-// Stripe Checkout pentru Abonamente și pentru Deblocare Lead ($15)
 app.post('/create-checkout-session', async (req, res) => {
     try {
         const { productType, leadId } = req.body;
@@ -173,7 +176,7 @@ app.post('/create-checkout-session', async (req, res) => {
             unitAmount = 14900;
             productName = 'MiamiMarket.ai - Pro Agency Plan';
         } else if (productType === 'unlock_lead') {
-            unitAmount = 1500; // $15 pentru deblocare lead unicat
+            unitAmount = 1500;
             productName = `MiamiMarket.ai - Unlock Lead #${leadId}`;
         }
 

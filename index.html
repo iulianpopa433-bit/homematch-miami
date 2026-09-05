@@ -5,121 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeMatch - Miami</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-            color: #333;
-        }
-        header {
-            background: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ddd;
-        }
-        nav a {
-            margin: 0 15px;
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-        }
-        .btn-join {
-            background-color: #0056b3;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-            display: flex;
-            gap: 30px;
-        }
-        .form-section {
-            flex: 1;
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .leads-section {
-            flex: 2;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .btn-submit {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-        }
-        .lead-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            position: relative;
-        }
-        .badge {
-            background: #e2e8f0;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #1a202c;
-        }
-        .badge-request {
-            background: #c6f6d5;
-            color: #22543d;
-            margin-left: 10px;
-        }
-        .btn-delete {
-            background-color: #fed7d7;
-            color: #9b2c2c;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 10px;
-        }
-        .btn-unlock {
-            background-color: #1a202c;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .locked-info {
-            color: #c53030;
-            font-size: 13px;
-            margin-top: 10px;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #333; }
+        header { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
+        nav a { margin: 0 15px; text-decoration: none; color: #333; font-weight: 500; }
+        .btn-join { background-color: #0056b3; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: flex; gap: 30px; }
+        .form-section { flex: 1; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .leads-section { flex: 2; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-submit { background-color: #28a745; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; }
+        .lead-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .badge { background: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; color: #1a202c; }
+        .badge-request { background: #c6f6d5; color: #22543d; margin-left: 10px; }
+        .btn-delete { background-color: #fed7d7; color: #9b2c2c; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+        .btn-unlock { background-color: #1a202c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .locked-info { color: #c53030; font-size: 13px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -137,7 +39,7 @@
     </header>
 
     <div class="container">
-        <!-- Secțiunea formularului pentru clienți -->
+        <!-- Formular Client -->
         <div class="form-section">
             <h3>Request a Local Pro</h3>
             <form id="leadForm">
@@ -170,7 +72,7 @@
             </form>
         </div>
 
-        <!-- Secțiunea unde apar cererile live -->
+        <!-- Lista de Lead-uri Live -->
         <div class="leads-section">
             <h3>Live Client Requests</h3>
             <div id="leadsList">
@@ -180,11 +82,25 @@
     </div>
 
     <script>
-        const API_URL = ""; // Rămâne gol dacă rulează pe același server pe Render
+        const API_URL = ""; 
+
+        // Gestionare unică a ID-urilor proprii în localStorage
+        function getMyLeadIds() {
+            let ids = localStorage.getItem('my_leads');
+            return ids ? JSON.parse(ids) : [];
+        }
+
+        function saveMyLeadId(id) {
+            let ids = getMyLeadIds();
+            if (!ids.includes(id)) {
+                ids.push(id);
+                localStorage.setItem('my_leads', JSON.stringify(ids));
+            }
+        }
 
         async function fetchLeads() {
             try {
-                const response = derzeit = await fetch(API_URL + '/api/leads');
+                const response = await fetch(API_URL + '/api/leads');
                 const leads = await response.json();
                 const list = document.getElementById('leadsList');
                 list.innerHTML = '';
@@ -194,21 +110,30 @@
                     return;
                 }
 
+                const myLeads = getMyLeadIds();
+
                 leads.forEach(lead => {
                     const card = document.createElement('div');
                     card.className = 'lead-card';
+                    const isMyLead = myLeads.includes(lead._id);
 
-                    // AICI AM MODIFICAT: Afișăm butonul de Delete la TOATE cererile temporar ca să le poți curăța
+                    let actionButtons = `<button class="btn-unlock" onclick="unlockLead('${lead._id}')">Unlock for $15</button>`;
+                    let badgeHtml = '';
+
+                    if (isMyLead) {
+                        badgeHtml = `<span class="badge badge-request">Your Request</span>`;
+                        actionButtons = `<button class="btn-delete" onclick="deleteLead('${lead._id}')">Delete / Resolve</button>`;
+                    }
+
                     card.innerHTML = `
                         <span class="badge">${lead.service}</span>
                         <span class="badge">${lead.neighborhood}</span>
-                        <span class="badge badge-request">Your Request</span>
+                        ${badgeHtml}
                         <p style="margin-top: 10px;"><strong>Client:</strong> ${lead.clientName}</p>
                         <p>${lead.description}</p>
                         <p class="locked-info">🔒 Ascuns (Necesită Pro Plan sau $15 deblocare)</p>
                         <div style="margin-top: 15px;">
-                            <button class="btn-delete" onclick="deleteLead('${lead._id}')">Delete</button>
-                            <button class="btn-unlock" onclick="unlockLead('${lead._id}')">Unlock for $15</button>
+                            ${actionButtons}
                         </div>
                     `;
                     list.appendChild(card);
@@ -223,8 +148,8 @@
             const newLead = {
                 service: document.getElementById('service').value,
                 neighborhood: document.getElementById('neighborhood').value,
-                clientName: document.getElementById('clientName').value,
-                phone: document.getElementById('phone').value,
+                name: document.getElementById('clientName').value,
+                contact: document.getElementById('phone').value,
                 description: document.getElementById('description').value
             };
 
@@ -235,7 +160,9 @@
                     body: JSON.stringify(newLead)
                 });
 
-                if (response.ok) {
+                const data = await response.json();
+                if (response.ok && data.leadId) {
+                    saveMyLeadId(data.leadId);
                     document.getElementById('leadForm').reset();
                     fetchLeads();
                 } else {
@@ -247,12 +174,15 @@
         });
 
         async function deleteLead(id) {
-            if (!confirm('Are you sure you want to delete this lead?')) return;
+            if (!confirm('Are you sure you want to remove this request?')) return;
             try {
                 const response = await fetch(API_URL + `/api/leads/${id}`, {
                     method: 'DELETE'
                 });
                 if (response.ok) {
+                    // Șterge și din localStorage local
+                    let myLeads = getMyLeadIds().filter(leadId => leadId !== id);
+                    localStorage.setItem('my_leads', JSON.stringify(myLeads));
                     fetchLeads();
                 } else {
                     alert('Could not delete lead');
@@ -263,10 +193,13 @@
         }
 
         function unlockLead(id) {
-            alert('Redirecting to payment gateway for $15 unlock...');
+            if (confirm('Simulare plată de $15: După plată, acest lead va fi marcat ca deblocat și ascuns pentru ceilalți meseriași.')) {
+                // Aici poți adăuga în viitor apelul către Stripe. 
+                // Pentru moment, o simulăm prin ștergerea lead-ului din listă după plata reușită:
+                deleteLead(id);
+            }
         }
 
-        // Încarcă cererile la pornirea paginii
         fetchLeads();
     </script>
 </body>
