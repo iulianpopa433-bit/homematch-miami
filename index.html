@@ -26,7 +26,7 @@
                 <a href="#pricing" class="hover:text-blue-600 transition">Pro Plans</a>
             </nav>
             <div>
-                <a href="#pricing" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm">Join as a Pro</a>
+                <a href="#pricing" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm transition shadow-sm inline-block">Join as a Pro</a>
             </div>
         </div>
     </header>
@@ -82,7 +82,7 @@
     </section>
 
     <!-- Secțiunea principală: Formular Lead-uri & Listări -->
-    <main class="max-w-7xl mx-auto px-4 pb-20 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <main class="max-w-7xl mx-auto px-4 pb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <!-- Formular Lead-uri cu Categorii extinse + Banner Lateral -->
         <div class="lg:col-span-1 space-y-6">
@@ -131,7 +131,7 @@
             </div>
         </div>
 
-        <!-- Zona de Contractori, Cereri Live & Secțiune Banner Afiliat în loc de planuri -->
+        <!-- Zona de Contractori & Cereri Live -->
         <div class="lg:col-span-2 space-y-8">
             
             <!-- Cereri Live Clienți -->
@@ -150,26 +150,61 @@
                 </div>
             </div>
 
-            <!-- SECȚIUNE ÎNLOCUITĂ: Banner de Afiliat mare în loc de casetele de prețuri -->
-            <div id="pricing" class="bg-white p-8 rounded-3xl shadow-lg border border-slate-200 text-center">
-                <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-3">Partner Sponsor</span>
-                <h3 class="text-xl font-bold text-slate-900 mb-2">Advertise Your Business Here</h3>
-                <p class="text-sm text-slate-600 mb-6 max-w-lg mx-auto">Get exclusive visibility in front of thousands of homeowners looking for local services in Miami-Dade County.</p>
-                
-                <!-- Dimensiune banner mare integrat (ex: Leaderboard 728x90 sau Billboard 970x250) -->
+            <!-- BANNER AFILIERE MARE (deasupra barei de abonamente) -->
+            <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-200 text-center">
+                <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">Partner Sponsor</span>
+                <h4 class="text-base font-bold text-slate-900 mb-1">Advertise Your Business Here</h4>
+                <p class="text-xs text-slate-500 mb-4">Recommended Banner Size: Leaderboard (728x90 px)</p>
                 <div class="mx-auto flex justify-center">
-                    <div style="width: 100%; max-width: 728px; height: 90px;" class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center text-slate-400 text-xs font-semibold p-4 shadow-inner">
-                        <span>Advertise Your Business Here</span>
-                        <span class="text-slate-400 font-normal mt-1">Recommended Banner Size: Leaderboard (728x90 px) or Full Banner (468x60 px)</span>
+                    <div style="width: 100%; max-width: 728px; height: 90px;" class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl flex items-center justify-center text-slate-400 text-xs font-semibold shadow-inner">
+                        <span>Affiliate Banner 728x90 Space</span>
                     </div>
                 </div>
             </div>
+
         </div>
 
     </main>
 
+    <!-- SECȚIUNEA DE JOS (BARA DE ABONAMENTE / PRO PLANS) -->
+    <section id="pricing" class="bg-slate-900 text-white py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center max-w-2xl mx-auto mb-10">
+                <span class="bg-blue-600/30 text-blue-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-3">Partner With Us</span>
+                <h3 class="text-2xl md:text-3xl font-black">Grow Your Business in Miami</h3>
+                <p class="text-sm text-slate-400 mt-2">Choose a plan to list your agency or unlock direct client requests instantly across Miami-Dade County.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <!-- Featured Listing Plan -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between">
+                    <div>
+                        <span class="bg-blue-500/20 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">Featured Listing</span>
+                        <div class="text-3xl font-black text-white mt-3">$39 <span class="text-xs font-normal text-slate-400">/mo</span></div>
+                        <p class="text-xs text-slate-300 mt-2">Top placement in your category and guaranteed local visibility across Miami.</p>
+                    </div>
+                    <button onclick="subscribePlan('featured')" class="mt-6 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-sm">
+                        Select Featured Plan
+                    </button>
+                </div>
+
+                <!-- Pro Agency Plan -->
+                <div class="bg-slate-800 border border-blue-500 rounded-2xl p-6 flex flex-col justify-between ring-1 ring-blue-500">
+                    <div>
+                        <span class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">Pro Agency</span>
+                        <div class="text-3xl font-black text-white mt-3">$149 <span class="text-xs font-normal text-slate-400">/mo</span></div>
+                        <p class="text-xs text-slate-300 mt-2">Unlimited lead matches, maximum priority, and direct client routing in real time.</p>
+                    </div>
+                    <button onclick="subscribePlan('pro_agency')" class="mt-6 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl text-xs transition shadow-sm">
+                        Select Pro Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-8 text-center text-xs text-slate-500">
+    <footer class="bg-slate-950 text-slate-500 py-6 text-center text-xs border-t border-slate-900">
         <p>&copy; 2026 MiamiMarket.ai. All rights reserved across Miami-Dade County.</p>
     </footer>
 
@@ -228,6 +263,25 @@
                     window.location.href = data.url;
                 } else {
                     alert('Error initiating payment for unlock.');
+                }
+            } catch(err) {
+                console.error(err);
+                alert('Connection error.');
+            }
+        }
+
+        async function subscribePlan(planType) {
+            try {
+                const res = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productType: planType })
+                });
+                const data = await res.json();
+                if(data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Error initiating subscription.');
                 }
             } catch(err) {
                 console.error(err);
