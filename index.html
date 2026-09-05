@@ -166,7 +166,7 @@
 
     </main>
 
-    <!-- SECȚIUNEA DE JOS (BARA DE ABONAMENTE / PRO PLANS) -->
+    <!-- SECȚIUNEA DE JOS (BARA DE ABONAMENTE / PRO PLANS - BLOCATE TEMPORAR) -->
     <section id="pricing" class="bg-slate-900 text-white py-12 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4">
             <div class="text-center max-w-2xl mx-auto mb-10">
@@ -177,26 +177,26 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                 <!-- Featured Listing Plan -->
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between">
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-col justify-between opacity-90">
                     <div>
                         <span class="bg-blue-500/20 text-blue-400 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">Featured Listing</span>
                         <div class="text-3xl font-black text-white mt-3">$39 <span class="text-xs font-normal text-slate-400">/mo</span></div>
                         <p class="text-xs text-slate-300 mt-2">Top placement in your category and guaranteed local visibility across Miami.</p>
                     </div>
-                    <button onclick="subscribePlan('featured')" class="mt-6 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-sm">
-                        Select Featured Plan
+                    <button disabled class="mt-6 w-full bg-slate-700 text-slate-400 font-bold py-3 rounded-xl text-xs cursor-not-allowed">
+                        Coming Soon (Setup in Progress)
                     </button>
                 </div>
 
                 <!-- Pro Agency Plan -->
-                <div class="bg-slate-800 border border-blue-500 rounded-2xl p-6 flex flex-col justify-between ring-1 ring-blue-500">
+                <div class="bg-slate-800 border border-blue-500/50 rounded-2xl p-6 flex flex-col justify-between ring-1 ring-blue-500/30 opacity-90">
                     <div>
                         <span class="bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">Pro Agency</span>
                         <div class="text-3xl font-black text-white mt-3">$149 <span class="text-xs font-normal text-slate-400">/mo</span></div>
                         <p class="text-xs text-slate-300 mt-2">Unlimited lead matches, maximum priority, and direct client routing in real time.</p>
                     </div>
-                    <button onclick="subscribePlan('pro_agency')" class="mt-6 w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl text-xs transition shadow-sm">
-                        Select Pro Plan
+                    <button disabled class="mt-6 w-full bg-slate-700 text-slate-400 font-bold py-3 rounded-xl text-xs cursor-not-allowed">
+                        Coming Soon (Setup in Progress)
                     </button>
                 </div>
             </div>
@@ -263,25 +263,6 @@
                     window.location.href = data.url;
                 } else {
                     alert('Error initiating payment for unlock.');
-                }
-            } catch(err) {
-                console.error(err);
-                alert('Connection error.');
-            }
-        }
-
-        async function subscribePlan(planType) {
-            try {
-                const res = await fetch('/create-checkout-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ productType: planType })
-                });
-                const data = await res.json();
-                if(data.url) {
-                    window.location.href = data.url;
-                } else {
-                    alert('Error initiating subscription.');
                 }
             } catch(err) {
                 console.error(err);
